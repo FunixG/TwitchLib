@@ -4,8 +4,8 @@ import fr.funixgaming.twitch.api.chatbotIRC.TwitchChatBot;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
-        final TwitchChatBot twitchChatBot = new TwitchChatBot("funixbot", "");
+    public static void main(String[] args) {
+        final TwitchChatBot twitchChatBot = new TwitchChatBot("funixbot", args[0]);
         twitchChatBot.joinChannel("funixgaming", "gotaga");
         twitchChatBot.sendMessageToChannel("funixgaming", "test");
         while (twitchChatBot.isRunning());
