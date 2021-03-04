@@ -41,9 +41,12 @@ public class TwitchChatBot extends IRCSocketClient {
 
     @Override
     protected void onSocketMessage(final String message) {
-        System.out.println(message);
         if (message.equals("PING :tmi.twitch.tv")) {
             super.sendMessage("PONG :tmi.twitch.tv");
+        } else {
+            for (final String twitchData : message.split("\r\n")) {
+                final TagParser parser = new TagParser(twitchData);
+            }
         }
     }
 }
