@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-class TagParser {
+public class TagParser {
 
     private TwitchTag twitchTag;
     private Map<String, String> tagMap;
@@ -80,18 +80,18 @@ class TagParser {
     }
 
     public TwitchTag getTwitchTag() {
-        return twitchTag;
+        return this.twitchTag;
     }
 
     public String getChannel() {
-        return channel;
+        return this.channel;
     }
 
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     public Map<String, String> getTagMap() {
-        return tagMap;
+        return this.tagMap;
     }
 }
