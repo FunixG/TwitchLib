@@ -6,7 +6,6 @@ import java.util.Set;
 public enum TwitchTag {
     CLEARCHAT("ban-duration"),
     CLEARMSG("login", "message", "target-msg-id"),
-    GLOBALUSERSTATE("badge-info", "badges", "color", "display-name", "emote-sets", "user-id", "user-type"),
     PRIVMSG("badge-info", "badges", "bits", "color", "display-name", "emotes", "id", "message", "mod", "room-id",
             "tmi-sent-ts", "user-id"),
     ROOMSTATE("emote-only", "followers-only", "r9k", "slow", "subs-only"),
@@ -18,7 +17,6 @@ public enum TwitchTag {
             "msg-param-streak-months", "msg-param-sub-plan", "msg-param-sub-plan-name", "msg-param-viewerCount",
             "msg-param-ritual-name", "msg-param-threshold", "msg-param-gift-months"),
     USERSTATE("badge-info", "badges", "color", "display-name", "emote-sets", "mod"),
-    NOTICE("msg-id"),
     JOIN(),
     PART(),
     HOSTTARGET();

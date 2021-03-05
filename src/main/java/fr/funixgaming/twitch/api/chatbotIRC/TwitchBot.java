@@ -1,13 +1,14 @@
 package fr.funixgaming.twitch.api.chatbotIRC;
 
-import fr.funixgaming.twitch.api.chatbotIRC.events.HostChannelEvent;
-import fr.funixgaming.twitch.api.chatbotIRC.events.JoinChatEvent;
-import fr.funixgaming.twitch.api.chatbotIRC.events.LeaveChatEvent;
+import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class TwitchBot extends IRCSocketClient {
+
+    private static final String URL_TWITCH_CHAT_IRC = "irc.chat.twitch.tv";
+    private static final int IRC_CHAT_PORT_SSL = 6697;
 
     private final Set<TwitchEvents> twitchEvents;
 
@@ -19,11 +20,15 @@ public class TwitchBot extends IRCSocketClient {
      * @param oauthToken String oAuth token to log the Bot to twitch (example: oauth:qsdj5476hjgvsdqjkhfdslk)
      */
     public TwitchBot(final String botUsername, final String oauthToken) {
-        super("irc.chat.twitch.tv", 6697, botUsername, oauthToken);
+        super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oauthToken);
         super.start();
         this.twitchEvents = new HashSet<>();
     }
 
+    /**
+     * Used to join a Twitch chat, needed for listening for events
+     * @param channelsName
+     */
     public void joinChannel(final String ...channelsName) {
         final StringBuilder stringBuilder = new StringBuilder();
 
@@ -35,10 +40,19 @@ public class TwitchBot extends IRCSocketClient {
         super.sendMessage(stringBuilder.toString());
     }
 
+    /**
+     * Used to send a message to a channel, no need to join the channel to send the message
+     * @param channelName
+     * @param message
+     */
     public void sendMessageToChannel(final String channelName, final String message) {
         super.sendMessage("PRIVMSG #" + channelName + " :" + message);
     }
 
+    /**
+     * Used to register an event class to send twitch IRC events
+     * @param eventInstance
+     */
     public void addEventListener(final TwitchEvents eventInstance) {
         this.twitchEvents.add(eventInstance);
     }
@@ -57,20 +71,22 @@ public class TwitchBot extends IRCSocketClient {
                 for (final TwitchEvents evtInstance : this.twitchEvents) {
                     switch (parser.getTwitchTag()) {
                         case CLEARCHAT:
+                            if (parser.getMessage() == null)
+                                evtInstance.onChatClear(new ClearChatEvent(parser.getChannel(), this));
+                            else
+                                evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
                             break;
                         case CLEARMSG:
-                            break;
-                        case GLOBALUSERSTATE:
+                            evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));
                             break;
                         case PRIVMSG:
+                            evtInstance.onUserChat(new UserChatEvent(parser, this));
                             break;
                         case ROOMSTATE:
                             break;
                         case USERNOTICE:
                             break;
                         case USERSTATE:
-                            break;
-                        case NOTICE:
                             break;
                         case JOIN:
                             evtInstance.onJoinEvent(new JoinChatEvent(parser.getChannel(), this));
