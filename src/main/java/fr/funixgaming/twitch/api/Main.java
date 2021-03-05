@@ -2,9 +2,7 @@ package fr.funixgaming.twitch.api;
 
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchEvents;
-import fr.funixgaming.twitch.api.chatbotIRC.events.HostChannelEvent;
-import fr.funixgaming.twitch.api.chatbotIRC.events.JoinChatEvent;
-import fr.funixgaming.twitch.api.chatbotIRC.events.LeaveChatEvent;
+import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
 public class Main {
 
@@ -32,5 +30,25 @@ class TestEvents implements TwitchEvents {
 
     @Override
     public void onChannelHost(HostChannelEvent event) {
+    }
+
+    @Override
+    public void onChatClear(ClearChatEvent event) {
+
+    }
+
+    @Override
+    public void onClearUserMessages(ClearUserMessagesEvent event) {
+
+    }
+
+    @Override
+    public void onMessageDeleted(DeleteMessageEvent event) {
+
+    }
+
+    @Override
+    public void onUserChat(UserChatEvent event) {
+        System.out.println("HEY");
     }
 }

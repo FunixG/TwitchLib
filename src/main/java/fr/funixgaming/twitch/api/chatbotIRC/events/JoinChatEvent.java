@@ -8,7 +8,7 @@ public class JoinChatEvent extends TwitchEvent {
 
     public JoinChatEvent(final String channel, final TwitchBot bot) {
         super(bot);
-        this.channel = channel;
+        this.channel = channel.substring(1);
     }
 
     public String getChannel() {
