@@ -10,8 +10,8 @@ public class TagParser {
 
     private TwitchTag twitchTag;
     private Map<String, String> tagMap;
-    private final String channel;
-    private final String message;
+    private String channel;
+    private String message;
 
     protected TagParser(String twitchString) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -73,7 +73,11 @@ public class TagParser {
                     this.tagMap.put(tag[0], tag[1]);
                 }
             }
-        } catch (IllegalArgumentException e) {
+            if (this.message.startsWith(":"))
+                this.message = this.message.substring(1);
+            if (this.channel.startsWith("#"))
+                this.channel = this.channel.substring(1);
+        } catch (IllegalArgumentException | NullPointerException e) {
             this.twitchTag = null;
             this.tagMap = null;
         }

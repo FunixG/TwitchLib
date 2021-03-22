@@ -2,48 +2,37 @@ package fr.funixgaming.twitch.api.chatbotIRC.events;
 
 import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
-import fr.funixgaming.twitch.api.chatbotIRC.enums.TwitchBadge;
+import fr.funixgaming.twitch.api.chatbotIRC.entities.ChatMember;
+import fr.funixgaming.twitch.api.chatbotIRC.entities.ChatMessage;
+import fr.funixgaming.twitch.api.chatbotIRC.entities.User;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class UserChatEvent extends TwitchEvent {
 
-    private final String color;
-    private final String displayName;
-    private final int bits;
-    private final int userID;
-    private final Map<String, String> badges;
+    private final User user;
+    private final ChatMember chatMember;
+    private final ChatMessage chatMessage;
 
     public UserChatEvent(final TagParser parser, final TwitchBot bot) {
         super(bot);
         final Map<String, String> params = parser.getTagMap();
 
-        this.badges = new HashMap<>();
-        this.color = params.get("color");
-        this.bits = Integer.parseInt(params.getOrDefault("bits", "0"));
-        this.displayName = params.get("display-name");
-        this.userID = Integer.parseInt(params.get("user-id"));
-        for (final String badgeInfo : params.get("badges").split(",")) {
-            final String[] badgeData = badgeInfo.split("/");
-
-            this.badges.put(badgeData[0], badgeData[1]);
-        }
+        System.out.println(parser.getMessage());
+        this.user = new User(params.get("color"), params.get("display-name"), Integer.parseInt(params.get("user-id")));
+        this.chatMember = new ChatMember(this.user, params.get("badges"), Integer.parseInt(params.get("room-id")), parser.getChannel());
+        this.chatMessage = new ChatMessage(this.chatMember, parser.getMessage(), Long.parseLong(params.get("tmi-sent-ts")), params.get("id"));
     }
 
-    public String getColor() {
-        return this.color;
+    public User getUser() {
+        return this.user;
     }
 
-    public String getDisplayName() {
-        return this.displayName;
+    public ChatMember getChatMember() {
+        return this.chatMember;
     }
 
-    public int getUserID() {
-        return this.userID;
-    }
-
-    public int getBits() {
-        return bits;
+    public ChatMessage getMessage() {
+        return this.chatMessage;
     }
 }
