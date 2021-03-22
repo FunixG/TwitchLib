@@ -49,6 +49,12 @@ class TestEvents implements TwitchEvents {
 
     @Override
     public void onUserChat(UserChatEvent event) {
-        System.out.println("HEY");
+        System.out.println("-ChatMessageEvent-\nuserColor: " + event.getUser().getColor() +
+                "\ndisplayName: " + event.getUser().getDisplayName() +
+                "\nuserID: " + event.getUser().getUserId() +
+                "\nisStreamer: " + event.getChatMember().isStreamer() +
+                "\nisMod: " + event.getChatMember().isModerator() +
+                "\nisSub: " + event.getChatMember().isSubscriber() +
+                "\nisVIP: " + event.getChatMember().isVIP());
     }
 }
