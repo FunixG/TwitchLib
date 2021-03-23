@@ -16,9 +16,6 @@ public enum TwitchTag {
             "msg-param-sender-login", "msg-param-sender-name", "msg-param-should-share-streak",
             "msg-param-streak-months", "msg-param-sub-plan", "msg-param-sub-plan-name", "msg-param-viewerCount",
             "msg-param-ritual-name", "msg-param-threshold", "msg-param-gift-months"),
-    USERSTATE("badge-info", "badges", "color", "display-name", "emote-sets", "mod"),
-    JOIN(),
-    PART(),
     HOSTTARGET();
 
     private final Set<String> tags;

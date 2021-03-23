@@ -5,18 +5,6 @@ import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 public interface TwitchEvents {
 
     /**
-     * Triggered when the bot join a twitch chat
-     * @param event
-     */
-    default void onJoinEvent(JoinChatEvent event) {};
-
-    /**
-     * Triggered when the bot leaves a twitch chat
-     * @param event
-     */
-    default void onLeaveEvent(LeaveChatEvent event) {};
-
-    /**
      * Triggered when a streamer is hosting a channel
      * It's also triggered when a streamer stop hosting
      * @param event
@@ -40,5 +28,12 @@ public interface TwitchEvents {
      * @param event
      */
     default void onUserChat(UserChatEvent event) {};
+
+    /**
+     * Triggered when a channel activate the submode, follow only mode,
+     * slow mode, emote only mode or the r9k mode
+     * @param event
+     */
+    default void onRoomStateChange(RoomStateChangeEvent event) {};
 
 }

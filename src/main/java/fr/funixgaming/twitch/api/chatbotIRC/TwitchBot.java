@@ -40,6 +40,17 @@ public class TwitchBot extends IRCSocketClient {
         super.sendMessage(stringBuilder.toString());
     }
 
+    public void quitChannel(final String ...channelsName) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        for (final String channel : channelsName) {
+            stringBuilder.append("PART #");
+            stringBuilder.append(channel);
+            stringBuilder.append('\n');
+        }
+        super.sendMessage(stringBuilder.toString());
+    }
+
     /**
      * Used to send a message to a channel, no need to join the channel to send the message
      * @param channelName
@@ -80,16 +91,10 @@ public class TwitchBot extends IRCSocketClient {
                             evtInstance.onUserChat(new UserChatEvent(parser, this));
                             break;
                         case ROOMSTATE:
+                            evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser, this));
                             break;
                         case USERNOTICE:
-                            break;
-                        case USERSTATE:
-                            break;
-                        case JOIN:
-                            evtInstance.onJoinEvent(new JoinChatEvent(parser.getChannel(), this));
-                            break;
-                        case PART:
-                            evtInstance.onLeaveEvent(new LeaveChatEvent(parser.getChannel(), this));
+                            //TODO parse and create event for user events (raids, subs)
                             break;
                         case HOSTTARGET:
                             evtInstance.onChannelHost(new HostChannelEvent(parser, this));

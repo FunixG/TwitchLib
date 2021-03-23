@@ -19,16 +19,6 @@ public class Main {
 class TestEvents implements TwitchEvents {
 
     @Override
-    public void onJoinEvent(JoinChatEvent event) {
-        System.out.println("JOIN EVENT: " + event.getChannel());
-    }
-
-    @Override
-    public void onLeaveEvent(LeaveChatEvent event) {
-        System.out.println("LEAVE EVENT: " + event.getChannel());
-    }
-
-    @Override
     public void onChannelHost(HostChannelEvent event) {
     }
 
@@ -61,5 +51,15 @@ class TestEvents implements TwitchEvents {
                 "\nroomID: " + event.getChatMember().getRoomID() +
                 "\nmessageID: " + event.getMessage().getMessageID() +
                 "\nmessage: " + event.getMessage().getMessage());
+    }
+
+    @Override
+    public void onRoomStateChange(RoomStateChangeEvent event) {
+        System.out.println("-RoomStateChangeEvent-\nchannel: " + event.getChannel() +
+                "\nisEmoteOnly: " + event.isEmoteOnly() +
+                "\nisFollowOnly: " + event.isFollowersOnly() +
+                "\nisR9k: " + event.isR9k() +
+                "\nisSlowMode: " + event.isSlowMode() +
+                "\nisSubsOnly: " + event.isSubsOnly());
     }
 }
