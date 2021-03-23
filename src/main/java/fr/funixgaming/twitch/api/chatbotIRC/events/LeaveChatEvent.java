@@ -8,12 +8,7 @@ public class LeaveChatEvent extends TwitchEvent {
 
     public LeaveChatEvent(final String channel, final TwitchBot bot) {
         super(bot);
-        this.channel = channel.substring(1);
-    }
-
-    @Override
-    public TwitchBot getBot() {
-        return null;
+        this.channel = channel;
     }
 
     public String getChannel() {

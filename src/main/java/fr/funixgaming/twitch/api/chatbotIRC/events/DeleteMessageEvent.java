@@ -16,8 +16,8 @@ public class DeleteMessageEvent extends TwitchEvent {
         super(bot);
         final Map<String, String> params = parser.getTagMap();
 
-        this.channel = parser.getChannel().substring(1);
-        this.messageDeleted = parser.getMessage().substring(1);
+        this.channel = parser.getChannel();
+        this.messageDeleted = parser.getMessage();
         this.userDeletedMessage = params.get("login");
         this.messageDeletedUUID = params.get("target-msg-id");
     }

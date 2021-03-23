@@ -33,17 +33,17 @@ class TestEvents implements TwitchEvents {
     }
 
     @Override
-    public void onChatClear(ClearChatEvent event) {
-
-    }
-
-    @Override
     public void onClearUserMessages(ClearUserMessagesEvent event) {
-
+        System.out.println("-ClearUserMessagesEvent-\nclearedUser: " + event.getClearedUser() +
+                "\nchannel: " + event.getChannel());
     }
 
     @Override
     public void onMessageDeleted(DeleteMessageEvent event) {
+        System.out.println("-DeleteMessageEvent-\nMessageDeleted: " + event.getMessageDeleted() +
+                "\nchannel: " + event.getChannel() +
+                "\nmessageUUID: " + event.getMessageDeletedUUID() +
+                "\nuserDeleted: " + event.getUserDeletedMessage());
 
     }
 
@@ -55,6 +55,11 @@ class TestEvents implements TwitchEvents {
                 "\nisStreamer: " + event.getChatMember().isStreamer() +
                 "\nisMod: " + event.getChatMember().isModerator() +
                 "\nisSub: " + event.getChatMember().isSubscriber() +
-                "\nisVIP: " + event.getChatMember().isVIP());
+                "\nisVIP: " + event.getChatMember().isVIP() +
+                "\nmessageSendAt: " + event.getMessage().getDateMessageSend() +
+                "\nroomName: " + event.getChatMember().getChannelName() +
+                "\nroomID: " + event.getChatMember().getRoomID() +
+                "\nmessageID: " + event.getMessage().getMessageID() +
+                "\nmessage: " + event.getMessage().getMessage());
     }
 }

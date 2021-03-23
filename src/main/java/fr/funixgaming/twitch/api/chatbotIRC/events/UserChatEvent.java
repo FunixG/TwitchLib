@@ -18,7 +18,6 @@ public class UserChatEvent extends TwitchEvent {
         super(bot);
         final Map<String, String> params = parser.getTagMap();
 
-        System.out.println(parser.getMessage());
         this.user = new User(params.get("color"), params.get("display-name"), Integer.parseInt(params.get("user-id")));
         this.chatMember = new ChatMember(this.user, params.get("badges"), Integer.parseInt(params.get("room-id")), parser.getChannel());
         this.chatMessage = new ChatMessage(this.chatMember, parser.getMessage(), Long.parseLong(params.get("tmi-sent-ts")), params.get("id"));
