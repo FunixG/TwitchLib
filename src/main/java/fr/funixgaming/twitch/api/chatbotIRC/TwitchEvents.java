@@ -24,12 +24,6 @@ public interface TwitchEvents {
     default void onChannelHost(HostChannelEvent event) {};
 
     /**
-     * Triggered when a stream chat is fully cleared
-     * @param event
-     */
-    default void onChatClear(ClearChatEvent event) {};
-
-    /**
      * Triggered when all user messages are removed (performed when a user is banned)
      * @param event
      */

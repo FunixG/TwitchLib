@@ -71,10 +71,7 @@ public class TwitchBot extends IRCSocketClient {
                 for (final TwitchEvents evtInstance : this.twitchEvents) {
                     switch (parser.getTwitchTag()) {
                         case CLEARCHAT:
-                            if (parser.getMessage() == null)
-                                evtInstance.onChatClear(new ClearChatEvent(parser.getChannel(), this));
-                            else
-                                evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
+                            evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
                             break;
                         case CLEARMSG:
                             evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));

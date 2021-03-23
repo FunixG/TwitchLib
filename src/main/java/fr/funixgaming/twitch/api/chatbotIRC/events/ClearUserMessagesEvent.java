@@ -10,8 +10,8 @@ public class ClearUserMessagesEvent extends TwitchEvent {
 
     public ClearUserMessagesEvent(final TagParser parser, final TwitchBot bot) {
         super(bot);
-        this.channel = parser.getChannel().substring(1);
-        this.user = parser.getMessage().substring(1);
+        this.channel = parser.getChannel();
+        this.user = parser.getMessage();
     }
 
     public String getChannel() {
