@@ -73,11 +73,11 @@ public class TagParser {
                     this.tagMap.put(tag[0], tag[1]);
                 }
             }
-            if (this.message.startsWith(":"))
+            if (this.message != null && this.message.startsWith(":"))
                 this.message = this.message.substring(1);
-            if (this.channel.startsWith("#"))
+            if (this.channel != null && this.channel.startsWith("#"))
                 this.channel = this.channel.substring(1);
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             this.twitchTag = null;
             this.tagMap = null;
         }
