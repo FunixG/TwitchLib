@@ -3,6 +3,7 @@ package fr.funixgaming.twitch.api.chatbotIRC;
 import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class TwitchBot extends IRCSocketClient {
@@ -91,10 +92,10 @@ public class TwitchBot extends IRCSocketClient {
                             evtInstance.onUserChat(new UserChatEvent(parser, this));
                             break;
                         case ROOMSTATE:
-                            evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser, this));
+                            this.handleRoomStateEvent(evtInstance, parser);
                             break;
                         case USERNOTICE:
-                            //TODO parse and create event for user events (raids, subs)
+                            this.handleUserNoticeEvent(evtInstance, parser);
                             break;
                         case HOSTTARGET:
                             evtInstance.onChannelHost(new HostChannelEvent(parser, this));
@@ -103,5 +104,32 @@ public class TwitchBot extends IRCSocketClient {
                 }
             }
         }
+    }
+
+    private void handleRoomStateEvent(final TwitchEvents evtInstance, final TagParser parser) {
+        final Map<String, String> params = parser.getTagMap();
+        final String emoteOnly = params.get("emote-only");
+        final String followOnly = params.get("followers-only");
+        final String r9k = params.get("r9k");
+        final String slow = params.get("slow");
+        final String subs = params.get("subs-only");
+
+        if (params.size() == 1) {
+            if (emoteOnly != null) {
+                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.EMOTE_ONLY, emoteOnly));
+            } else if (followOnly != null) {
+                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.FOLLOWERS_ONLY, followOnly));
+            } else if (r9k != null) {
+                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.R9K, r9k));
+            } else if (slow != null) {
+                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.SLOW_MODE, slow));
+            } else if (subs != null) {
+                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.SUBSCRIBERS_ONLY, subs));
+            }
+        }
+    }
+
+    private void handleUserNoticeEvent(final TwitchEvents evtInstance, final TagParser parser) {
+        //TODO parse and create event for user events (raids, subs)
     }
 }

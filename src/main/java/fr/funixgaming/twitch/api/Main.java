@@ -60,10 +60,8 @@ class TestEvents implements TwitchEvents {
     @Override
     public void onRoomStateChange(RoomStateChangeEvent event) {
         System.out.println("-RoomStateChangeEvent-\nchannel: " + event.getChannel() +
-                "\nisEmoteOnly: " + event.isEmoteOnly() +
-                "\nisFollowOnly: " + event.isFollowersOnly() +
-                "\nisR9k: " + event.isR9k() +
-                "\nisSlowMode: " + event.isSlowMode() +
-                "\nisSubsOnly: " + event.isSubsOnly());
+                "\nstate: " + event.getState() +
+                "\nisEnabled: " + event.isEnabled() +
+                "\ngetData: " + event.getData());
     }
 }
