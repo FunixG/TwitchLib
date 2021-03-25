@@ -4,8 +4,6 @@ import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
 import fr.funixgaming.twitch.api.chatbotIRC.entities.*;
 
-import java.util.Map;
-
 public class UserChatEvent extends TwitchEvent {
 
     private final User user;
@@ -14,22 +12,10 @@ public class UserChatEvent extends TwitchEvent {
 
     public UserChatEvent(final TagParser parser, final TwitchBot bot) {
         super(bot);
-        final Map<String, String> params = parser.getTagMap();
 
-        final String displayName = params.getOrDefault("display-name", "");
-        this.user = new User(params.getOrDefault("color", ""),
-                params.getOrDefault("login", displayName),
-                displayName,
-                Integer.parseInt(params.get("user-id")));
-        this.chatMember = new ChatMember(this.user,
-                Integer.parseInt(params.get("room-id")),
-                parser.getChannel(),
-                new UserBadges(params.getOrDefault("badges", "")));
-        this.chatMessage = new ChatMessage(this.chatMember,
-                parser.getMessage(),
-                Long.parseLong(params.get("tmi-sent-ts")),
-                params.get("id"),
-                new MessageEmotes(params.getOrDefault("emotes", "")));
+        this.user = new User(parser);
+        this.chatMember = new ChatMember(parser);
+        this.chatMessage = new ChatMessage(parser, this.chatMember);
     }
 
     public User getUser() {

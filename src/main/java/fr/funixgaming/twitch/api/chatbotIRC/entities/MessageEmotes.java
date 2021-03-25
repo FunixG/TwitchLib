@@ -1,5 +1,7 @@
 package fr.funixgaming.twitch.api.chatbotIRC.entities;
 
+import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,7 +17,9 @@ public class MessageEmotes {
     private final Set<Integer> emotesID = new HashSet<>();
     private int emotesNumber = 0;
 
-    public MessageEmotes(final String emotesString) {
+    public MessageEmotes(final TagParser parser) {
+        final String emotesString = parser.getTagMap().getOrDefault("emotes", "");
+
         if (emotesString.isEmpty()) return;
 
         for (final String emoteSet : emotesString.split("/")) {

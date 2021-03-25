@@ -1,6 +1,9 @@
 package fr.funixgaming.twitch.api.chatbotIRC.entities;
 
+import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+
 import java.util.Date;
+import java.util.Map;
 
 public class ChatMessage {
 
@@ -10,16 +13,14 @@ public class ChatMessage {
     private final MessageEmotes emotes;
     private final ChatMember owner;
 
-    public ChatMessage(final ChatMember chatMember,
-                       final String message,
-                       final long timestampSend,
-                       final String messageID,
-                       final MessageEmotes emotes) {
+    public ChatMessage(final TagParser parser, final ChatMember chatMember) {
+        final Map<String, String> params = parser.getTagMap();
+
         this.owner = chatMember;
-        this.message = message;
-        this.timestampSend = timestampSend;
-        this.messageID = messageID;
-        this.emotes = emotes;
+        this.message = parser.getMessage();
+        this.timestampSend = Long.parseLong(params.get("tmi-sent-ts"));
+        this.messageID = params.get("id");
+        this.emotes = new MessageEmotes(parser);
     }
 
     public String getMessage() {

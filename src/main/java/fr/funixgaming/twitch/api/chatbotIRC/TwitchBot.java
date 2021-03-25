@@ -1,5 +1,6 @@
 package fr.funixgaming.twitch.api.chatbotIRC;
 
+import fr.funixgaming.twitch.api.chatbotIRC.entities.*;
 import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
 import java.util.HashSet;
@@ -130,6 +131,9 @@ public class TwitchBot extends IRCSocketClient {
     }
 
     private void handleUserNoticeEvent(final TwitchEvents evtInstance, final TagParser parser) {
-        //TODO parse and create event for user events (raids, subs)
+        final MessageEmotes emotes = new MessageEmotes(parser);
+        final User user = new User(parser);
+        final ChatMember member = new ChatMember(parser);
+        //TODO parse and create event for user events (raids, subs) https://dev.twitch.tv/docs/irc/tags#usernotice-twitch-tags
     }
 }

@@ -1,5 +1,9 @@
 package fr.funixgaming.twitch.api.chatbotIRC.entities;
 
+import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+
+import java.util.Map;
+
 public class UserBadges {
 
     private boolean isStreamer = false;
@@ -12,7 +16,9 @@ public class UserBadges {
     private boolean isPrimeUser = false;
     private boolean isTurboUser = false;
 
-    public UserBadges(final String badgesString) {
+    public UserBadges(final TagParser parser) {
+        final String badgesString = parser.getTagMap().getOrDefault("badges", "");
+
         if (badgesString.isEmpty()) return;
 
         for (final String badgeInfo : badgesString.split(",")) {
