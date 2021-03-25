@@ -42,15 +42,17 @@ class TestEvents implements TwitchEvents {
         System.out.println("-ChatMessageEvent-\nuserColor: " + event.getUser().getColor() +
                 "\ndisplayName: " + event.getUser().getDisplayName() +
                 "\nuserID: " + event.getUser().getUserId() +
-                "\nisStreamer: " + event.getChatMember().isStreamer() +
-                "\nisMod: " + event.getChatMember().isModerator() +
-                "\nisSub: " + event.getChatMember().isSubscriber() +
-                "\nisVIP: " + event.getChatMember().isVIP() +
+                "\nisStreamer: " + event.getChatMember().getBadges().isStreamer() +
+                "\nisMod: " + event.getChatMember().getBadges().isModerator() +
+                "\nisSub: " + event.getChatMember().getBadges().isSubscriber() +
+                "\nisVIP: " + event.getChatMember().getBadges().isVIP() +
                 "\nmessageSendAt: " + event.getMessage().getDateMessageSend() +
                 "\nroomName: " + event.getChatMember().getChannelName() +
                 "\nroomID: " + event.getChatMember().getRoomID() +
                 "\nmessageID: " + event.getMessage().getMessageID() +
-                "\nmessage: " + event.getMessage().getMessage());
+                "\nmessage: " + event.getMessage().getMessage() +
+                "\nemotesID: " + event.getMessage().getEmotes().getEmotesID() +
+                "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes());
     }
 
     @Override
