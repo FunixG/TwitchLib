@@ -2,9 +2,7 @@ package fr.funixgaming.twitch.api.chatbotIRC.events;
 
 import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
-import fr.funixgaming.twitch.api.chatbotIRC.entities.ChatMember;
-import fr.funixgaming.twitch.api.chatbotIRC.entities.ChatMessage;
-import fr.funixgaming.twitch.api.chatbotIRC.entities.User;
+import fr.funixgaming.twitch.api.chatbotIRC.entities.*;
 
 import java.util.Map;
 
@@ -18,9 +16,18 @@ public class UserChatEvent extends TwitchEvent {
         super(bot);
         final Map<String, String> params = parser.getTagMap();
 
-        this.user = new User(params.get("color"), params.get("display-name"), Integer.parseInt(params.get("user-id")));
-        this.chatMember = new ChatMember(this.user, params.get("badges"), Integer.parseInt(params.get("room-id")), parser.getChannel());
-        this.chatMessage = new ChatMessage(this.chatMember, parser.getMessage(), Long.parseLong(params.get("tmi-sent-ts")), params.get("id"));
+        this.user = new User(params.get("color"),
+                params.get("display-name"),
+                Integer.parseInt(params.get("user-id")));
+        this.chatMember = new ChatMember(this.user,
+                Integer.parseInt(params.get("room-id")),
+                parser.getChannel(),
+                new UserBadges(params.getOrDefault("badges", "")));
+        this.chatMessage = new ChatMessage(this.chatMember,
+                parser.getMessage(),
+                Long.parseLong(params.get("tmi-sent-ts")),
+                params.get("id"),
+                new MessageEmotes(params.getOrDefault("emotes", "")));
     }
 
     public User getUser() {
