@@ -1,23 +1,18 @@
 package fr.funixgaming.twitch.api.chatbotIRC.entities;
 
+import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+
 public class ChatMember extends User {
 
-    protected final User user;
     protected final UserBadges badges;
     protected final int roomID;
     protected final String channelName;
 
-    public ChatMember(final User user,
-                      final int roomID,
-                      final String channelName,
-                      final UserBadges badges) {
-        super(user.getColor(), user.getDisplayName(), user.getLoginName(), user.getUserId());
-        this.user = user;
-        this.badges = badges;
-        this.roomID = roomID;
-        this.channelName = channelName;
-
-
+    public ChatMember(final TagParser parser) {
+        super(parser);
+        this.badges = new UserBadges(parser);
+        this.roomID = Integer.parseInt(parser.getTagMap().get("room-id"));
+        this.channelName = parser.getChannel();
     }
 
     public String getChannelName() {
