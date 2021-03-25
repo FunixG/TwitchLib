@@ -11,7 +11,7 @@ public class ChatMember extends User {
                       final int roomID,
                       final String channelName,
                       final UserBadges badges) {
-        super(user.getColor(), user.getDisplayName(), user.getUserId());
+        super(user.getColor(), user.getDisplayName(), user.getLoginName(), user.getUserId());
         this.user = user;
         this.badges = badges;
         this.roomID = roomID;

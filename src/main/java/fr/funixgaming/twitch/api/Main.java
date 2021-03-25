@@ -41,6 +41,7 @@ class TestEvents implements TwitchEvents {
     public void onUserChat(UserChatEvent event) {
         System.out.println("-ChatMessageEvent-\nuserColor: " + event.getUser().getColor() +
                 "\ndisplayName: " + event.getUser().getDisplayName() +
+                "\nloginName: " + event.getUser().getLoginName() +
                 "\nuserID: " + event.getUser().getUserId() +
                 "\nisStreamer: " + event.getChatMember().getBadges().isStreamer() +
                 "\nisMod: " + event.getChatMember().getBadges().isModerator() +
@@ -52,7 +53,8 @@ class TestEvents implements TwitchEvents {
                 "\nmessageID: " + event.getMessage().getMessageID() +
                 "\nmessage: " + event.getMessage().getMessage() +
                 "\nemotesID: " + event.getMessage().getEmotes().getEmotesID() +
-                "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes());
+                "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes() +
+                "\ntestGetOwnerOnMessage: " + event.getMessage().getOwner().getLoginName());
     }
 
     @Override
