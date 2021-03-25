@@ -16,8 +16,10 @@ public class UserChatEvent extends TwitchEvent {
         super(bot);
         final Map<String, String> params = parser.getTagMap();
 
-        this.user = new User(params.get("color"),
-                params.get("display-name"),
+        final String displayName = params.getOrDefault("display-name", "");
+        this.user = new User(params.getOrDefault("color", ""),
+                params.getOrDefault("login", displayName),
+                displayName,
                 Integer.parseInt(params.get("user-id")));
         this.chatMember = new ChatMember(this.user,
                 Integer.parseInt(params.get("room-id")),

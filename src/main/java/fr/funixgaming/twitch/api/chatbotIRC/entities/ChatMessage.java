@@ -2,19 +2,20 @@ package fr.funixgaming.twitch.api.chatbotIRC.entities;
 
 import java.util.Date;
 
-public class ChatMessage extends ChatMember {
+public class ChatMessage {
 
     private final String message;
     private final String messageID;
     private final long timestampSend;
     private final MessageEmotes emotes;
+    private final ChatMember owner;
 
     public ChatMessage(final ChatMember chatMember,
                        final String message,
                        final long timestampSend,
                        final String messageID,
                        final MessageEmotes emotes) {
-        super(chatMember.user, chatMember.roomID, chatMember.channelName, chatMember.badges);
+        this.owner = chatMember;
         this.message = message;
         this.timestampSend = timestampSend;
         this.messageID = messageID;
@@ -35,5 +36,9 @@ public class ChatMessage extends ChatMember {
 
     public MessageEmotes getEmotes() {
         return emotes;
+    }
+
+    public ChatMember getOwner() {
+        return owner;
     }
 }
