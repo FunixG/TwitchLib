@@ -54,6 +54,7 @@ class TestEvents implements TwitchEvents {
                 "\nmessage: " + event.getMessage().getMessage() +
                 "\nemotesID: " + event.getMessage().getEmotes().getEmotesID() +
                 "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes() +
+                "\nmessageNoEmotes: " + event.getMessage().getMessageWithoutEmotes() +
                 "\ntestGetOwnerOnMessage: " + event.getMessage().getOwner().getLoginName());
     }
 
