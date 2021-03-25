@@ -1,58 +1,57 @@
 package fr.funixgaming.twitch.api.chatbotIRC.events;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
-
-import java.util.Map;
 
 public class RoomStateChangeEvent extends TwitchEvent {
 
+    public enum State {
+        EMOTE_ONLY,
+        FOLLOWERS_ONLY,
+        SUBSCRIBERS_ONLY,
+        R9K,
+        SLOW_MODE,
+    }
+
     private final String channel;
+    private final String stateInfo;
+    private final State state;
 
-    private boolean emoteOnly = false;
-    private boolean followersOnly = false;
-    private boolean r9k = false;
-    private boolean slowMode = false;
-    private boolean subsOnly = false;
-
-    public RoomStateChangeEvent(final TagParser parser, final TwitchBot bot) {
+    public RoomStateChangeEvent(final String channel, final TwitchBot bot, final State state, final String stateInfo) {
         super(bot);
-        final Map<String, String> params = parser.getTagMap();
-
-        this.channel = parser.getChannel();
-        if (params.get("emote-only") != null && params.get("emote-only").equals("1"))
-            this.emoteOnly = true;
-        if (params.get("followers-only") != null && !params.get("followers-only").equals("-1"))
-            this.followersOnly = true;
-        if (params.get("r9k") != null && params.get("r9k").equals("1"))
-            this.r9k = true;
-        if (params.get("slow") != null && !params.get("slow").equals("0"))
-            this.slowMode = true;
-        if (params.get("subs-only") != null && params.get("subs-only").equals("1"))
-            this.subsOnly = true;
-    }
-
-    public boolean isEmoteOnly() {
-        return emoteOnly;
-    }
-
-    public boolean isFollowersOnly() {
-        return followersOnly;
-    }
-
-    public boolean isR9k() {
-        return r9k;
-    }
-
-    public boolean isSlowMode() {
-        return slowMode;
-    }
-
-    public boolean isSubsOnly() {
-        return subsOnly;
+        this.channel = channel;
+        this.state = state;
+        this.stateInfo = stateInfo;
     }
 
     public String getChannel() {
         return channel;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public boolean isEnabled() {
+        switch (this.state) {
+            case SUBSCRIBERS_ONLY:
+            case R9K:
+            case EMOTE_ONLY:
+                return stateInfo.equals("1");
+            case SLOW_MODE:
+                return !stateInfo.equals("0");
+            case FOLLOWERS_ONLY:
+                return !stateInfo.equals("-1");
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Will return the amount of time for follow mode (minutes)
+     * Or returns the slow mode timer (in seconds)
+     * @return int
+     */
+    public int getData() {
+        return Integer.parseInt(this.stateInfo);
     }
 }
