@@ -4,7 +4,6 @@ import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 public class ChatMessage {
 
@@ -22,27 +21,6 @@ public class ChatMessage {
         this.timestampSend = Long.parseLong(params.get("tmi-sent-ts"));
         this.messageID = params.get("id");
         this.emotes = new MessageEmotes(parser);
-    }
-
-    public String getMessageWithoutEmotes() {
-        final Set<String> emotesIndexes = this.emotes.getEmotesIndexes();
-        StringBuilder toRet = new StringBuilder(this.message);
-        int lastRemoved = 0;
-
-        System.out.println(emotesIndexes);
-        for (final String emoteIndexes : emotesIndexes) {
-            final String[] indexes = emoteIndexes.split("-");
-
-            if (indexes.length == 2) {
-                int a1 = Integer.parseInt(indexes[0]);
-                int a2 = Integer.parseInt(indexes[1]);
-                System.out.println("s: " + (a1 - lastRemoved) + " e: " + (a2 - lastRemoved) + " sLen: " + toRet.length());
-                toRet.delete(a1 - lastRemoved, a2 - lastRemoved);
-                //TODO résoudre le problème, l'algo mange le texte
-                lastRemoved += a2 - a1;
-            }
-        }
-        return toRet.toString();
     }
 
     public String getMessage() {

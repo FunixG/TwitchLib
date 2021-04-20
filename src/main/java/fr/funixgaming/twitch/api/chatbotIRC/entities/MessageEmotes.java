@@ -45,10 +45,6 @@ public class MessageEmotes {
         return emotesID;
     }
 
-    protected Set<String> getEmotesIndexes() {
-        return this.emotesIndexes;
-    }
-
     public static String getTwitchEmoteURLByID(final int emoteID, final EmoteSize size) {
         switch (size) {
             case SMALL:
