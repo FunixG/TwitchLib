@@ -8,10 +8,10 @@ import java.util.Map;
 
 public class TagParser {
 
+    private final Map<String, String> tagMap = new HashMap<>();
     private TwitchTag twitchTag;
-    private Map<String, String> tagMap;
-    private final String channel;
-    private final String message;
+    private String channel;
+    private String message;
 
     protected TagParser(String twitchString) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -64,18 +64,24 @@ public class TagParser {
         this.message = message;
 
         try {
-            this.twitchTag = TwitchTag.valueOf(command);
-            this.tagMap = new HashMap<>();
-            for (final String tagElem : tags.split(";")) {
-                final String[] tag = tagElem.split("=");
+            if (command == null) {
+                this.twitchTag = null;
+            } else {
+                this.twitchTag = TwitchTag.valueOf(command);
+                for (final String tagElem : tags.split(";")) {
+                    final String[] tag = tagElem.split("=");
 
-                if (tag.length == 2 && this.twitchTag.getTags().contains(tag[0])) {
-                    this.tagMap.put(tag[0], tag[1]);
+                    if (tag.length == 2 && this.twitchTag.getTags().contains(tag[0])) {
+                        this.tagMap.put(tag[0], tag[1]);
+                    }
                 }
             }
+            if (this.message != null && this.message.startsWith(":"))
+                this.message = this.message.substring(1);
+            if (this.channel != null && this.channel.startsWith("#"))
+                this.channel = this.channel.substring(1);
         } catch (IllegalArgumentException e) {
             this.twitchTag = null;
-            this.tagMap = null;
         }
     }
 
