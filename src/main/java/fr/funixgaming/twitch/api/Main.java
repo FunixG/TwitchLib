@@ -4,7 +4,7 @@ import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
 import fr.funixgaming.twitch.api.chatbotIRC.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
-public class Main {
+class Main {
 
     public static void main(String[] args) {
         final TwitchBot twitchBot = new TwitchBot(args[0], args[1]);
@@ -54,7 +54,6 @@ class TestEvents implements TwitchEvents {
                 "\nmessage: " + event.getMessage().getMessage() +
                 "\nemotesID: " + event.getMessage().getEmotes().getEmotesID() +
                 "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes() +
-                "\nmessageNoEmotes: " + event.getMessage().getMessageWithoutEmotes() +
                 "\ntestGetOwnerOnMessage: " + event.getMessage().getOwner().getLoginName());
     }
 

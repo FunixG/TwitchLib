@@ -72,7 +72,7 @@ public class TwitchBot extends IRCSocketClient {
 
     @Override
     protected void onSocketMessage(final String message) {
-        if (message.equals("PING :tmi.twitch.tv")) {
+        if (message.equals("PING :tmi.twitch.tv\r\n")) {
             super.sendMessage("PONG :tmi.twitch.tv");
         } else {
             for (final String twitchData : message.split("\r\n")) {
