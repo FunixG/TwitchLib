@@ -1,8 +1,8 @@
 package fr.funixgaming.twitch.api;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
-import fr.funixgaming.twitch.api.chatbotIRC.TwitchEvents;
-import fr.funixgaming.twitch.api.chatbotIRC.events.*;
+import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
+import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
+import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 
 class MainTest {
 
@@ -24,7 +24,7 @@ class TestEvents implements TwitchEvents {
 
     @Override
     public void onClearUserMessages(ClearUserMessagesEvent event) {
-        System.out.println("-ClearUserMessagesEvent-\nclearedUser: " + event.getClearedUser() +
+        System.out.println("-ClearUserMessagesEvent-\nclearedUser: " + event.getUserName() +
                 "\nchannel: " + event.getChannel());
     }
 
@@ -39,22 +39,22 @@ class TestEvents implements TwitchEvents {
 
     @Override
     public void onUserChat(UserChatEvent event) {
-        System.out.println("-ChatMessageEvent-\nuserColor: " + event.getUser().getColor() +
-                "\ndisplayName: " + event.getUser().getDisplayName() +
-                "\nloginName: " + event.getUser().getLoginName() +
-                "\nuserID: " + event.getUser().getUserId() +
+        System.out.println("-ChatMessageEvent-\nuserColor: " + event.getChatMember().getColor() +
+                "\ndisplayName: " + event.getChatMember().getDisplayName() +
+                "\nloginName: " + event.getChatMember().getLoginName() +
+                "\nuserID: " + event.getChatMember().getUserId() +
                 "\nisStreamer: " + event.getChatMember().getBadges().isStreamer() +
                 "\nisMod: " + event.getChatMember().getBadges().isModerator() +
                 "\nisSub: " + event.getChatMember().getBadges().isSubscriber() +
                 "\nisVIP: " + event.getChatMember().getBadges().isVIP() +
-                "\nmessageSendAt: " + event.getMessage().getDateMessageSend() +
+                "\nmessageSendAt: " + event.getChatMessage().getDateRecieved() +
                 "\nroomName: " + event.getChatMember().getChannelName() +
                 "\nroomID: " + event.getChatMember().getRoomID() +
-                "\nmessageID: " + event.getMessage().getMessageID() +
-                "\nmessage: " + event.getMessage().getMessage() +
-                "\nemotesID: " + event.getMessage().getEmotes().getEmotesID() +
-                "\nemotesNBR: " + event.getMessage().getEmotes().countEmotes() +
-                "\ntestGetOwnerOnMessage: " + event.getMessage().getOwner().getLoginName());
+                "\nmessageID: " + event.getChatMessage().getMessageID() +
+                "\nmessage: " + event.getChatMessage().getMessage() +
+                "\nemotesID: " + event.getChatMessage().getEmotes().getEmotesID() +
+                "\nemotesNBR: " + event.getChatMessage().getEmotes().getEmotesNumber() +
+                "\ntestGetOwnerOnMessage: " + event.getChatMessage().getOwner().getLoginName());
     }
 
     @Override

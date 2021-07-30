@@ -1,9 +1,11 @@
-package fr.funixgaming.twitch.api.chatbotIRC.entities;
+package fr.funixgaming.twitch.api.chatbot_irc.entities;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import lombok.Getter;
 
 import java.util.Map;
 
+@Getter
 public class User {
 
     private final String color;

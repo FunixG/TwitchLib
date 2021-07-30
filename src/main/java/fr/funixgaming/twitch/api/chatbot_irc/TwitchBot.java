@@ -1,11 +1,10 @@
-package fr.funixgaming.twitch.api.chatbotIRC;
+package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.chatbotIRC.entities.*;
-import fr.funixgaming.twitch.api.chatbotIRC.events.*;
+import fr.funixgaming.twitch.api.chatbot_irc.entities.*;
+import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class TwitchBot extends IRCSocketClient {
 
@@ -23,11 +22,10 @@ public class TwitchBot extends IRCSocketClient {
      */
     public TwitchBot(final String botUsername, final String oauthToken) {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oauthToken);
-        super.start();
     }
 
     /**
-     * Used to join a Twitch chat, needed for listening for events
+     * Used to join a Twitch chat, needed for events listening
      * @param channelsName Twitch channel name. Example FunixGaming
      */
     public void joinChannel(final String ...channelsName) {
@@ -42,10 +40,10 @@ public class TwitchBot extends IRCSocketClient {
     }
 
     /**
-     * Quit a twitch chat from listening from events
+     * Quit a twitch chat disabling events listening
      * @param channelsName Twitch channel name. Example FunixGaming
      */
-    public void quitChannel(final String ...channelsName) {
+    public void leaveChannel(final String ...channelsName) {
         final StringBuilder stringBuilder = new StringBuilder();
 
         for (final String channel : channelsName) {
@@ -96,7 +94,7 @@ public class TwitchBot extends IRCSocketClient {
                             evtInstance.onUserChat(new UserChatEvent(parser, this));
                             break;
                         case ROOMSTATE:
-                            this.handleRoomStateEvent(evtInstance, parser);
+                            evtInstance.onRoomStateChange(new RoomStateChangeEvent(this, parser));
                             break;
                         case USERNOTICE:
                             this.handleUserNoticeEvent(evtInstance, parser);
@@ -106,29 +104,6 @@ public class TwitchBot extends IRCSocketClient {
                             break;
                     }
                 }
-            }
-        }
-    }
-
-    private void handleRoomStateEvent(final TwitchEvents evtInstance, final TagParser parser) {
-        final Map<String, String> params = parser.getTagMap();
-        final String emoteOnly = params.get("emote-only");
-        final String followOnly = params.get("followers-only");
-        final String r9k = params.get("r9k");
-        final String slow = params.get("slow");
-        final String subs = params.get("subs-only");
-
-        if (params.size() == 1) {
-            if (emoteOnly != null) {
-                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.EMOTE_ONLY, emoteOnly));
-            } else if (followOnly != null) {
-                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.FOLLOWERS_ONLY, followOnly));
-            } else if (r9k != null) {
-                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.R9K, r9k));
-            } else if (slow != null) {
-                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.SLOW_MODE, slow));
-            } else if (subs != null) {
-                evtInstance.onRoomStateChange(new RoomStateChangeEvent(parser.getChannel(), this, RoomStateChangeEvent.State.SUBSCRIBERS_ONLY, subs));
             }
         }
     }

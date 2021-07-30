@@ -1,7 +1,7 @@
-package fr.funixgaming.twitch.api.chatbotIRC.events;
+package fr.funixgaming.twitch.api.chatbot_irc.events;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
-import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
+import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
 
 public class HostChannelEvent extends TwitchEvent {
 

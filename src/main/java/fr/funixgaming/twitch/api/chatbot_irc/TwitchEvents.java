@@ -1,6 +1,6 @@
-package fr.funixgaming.twitch.api.chatbotIRC;
+package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.chatbotIRC.events.*;
+import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 
 public interface TwitchEvents {
 
