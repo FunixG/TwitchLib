@@ -1,7 +1,9 @@
-package fr.funixgaming.twitch.api.chatbotIRC.entities;
+package fr.funixgaming.twitch.api.chatbot_irc.entities;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import lombok.Getter;
 
+@Getter
 public class ChatMember extends User {
 
     protected final UserBadges badges;
@@ -13,17 +15,5 @@ public class ChatMember extends User {
         this.badges = new UserBadges(parser);
         this.roomID = Integer.parseInt(parser.getTagMap().get("room-id"));
         this.channelName = parser.getChannel();
-    }
-
-    public String getChannelName() {
-        return channelName;
-    }
-
-    public int getRoomID() {
-        return roomID;
-    }
-
-    public UserBadges getBadges() {
-        return badges;
     }
 }

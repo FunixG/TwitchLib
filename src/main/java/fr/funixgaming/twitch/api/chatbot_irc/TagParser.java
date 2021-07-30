@@ -1,8 +1,7 @@
-package fr.funixgaming.twitch.api.chatbotIRC;
+package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.chatbotIRC.enums.TwitchTag;
+import fr.funixgaming.twitch.api.chatbot_irc.enums.TwitchTag;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

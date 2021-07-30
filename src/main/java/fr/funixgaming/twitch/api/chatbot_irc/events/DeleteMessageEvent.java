@@ -1,10 +1,12 @@
-package fr.funixgaming.twitch.api.chatbotIRC.events;
+package fr.funixgaming.twitch.api.chatbot_irc.events;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
-import fr.funixgaming.twitch.api.chatbotIRC.TwitchBot;
+import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
+import lombok.Getter;
 
 import java.util.Map;
 
+@Getter
 public class DeleteMessageEvent extends TwitchEvent {
 
     private final String channel;
@@ -20,21 +22,5 @@ public class DeleteMessageEvent extends TwitchEvent {
         this.messageDeleted = parser.getMessage();
         this.userDeletedMessage = params.get("login");
         this.messageDeletedUUID = params.get("target-msg-id");
-    }
-
-    public String getChannel() {
-        return channel;
-    }
-
-    public String getMessageDeleted() {
-        return messageDeleted;
-    }
-
-    public String getUserDeletedMessage() {
-        return userDeletedMessage;
-    }
-
-    public String getMessageDeletedUUID() {
-        return messageDeletedUUID;
     }
 }

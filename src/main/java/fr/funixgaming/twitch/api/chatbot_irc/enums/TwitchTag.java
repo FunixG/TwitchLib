@@ -1,4 +1,4 @@
-package fr.funixgaming.twitch.api.chatbotIRC.enums;
+package fr.funixgaming.twitch.api.chatbot_irc.enums;
 
 import java.util.Arrays;
 import java.util.Set;

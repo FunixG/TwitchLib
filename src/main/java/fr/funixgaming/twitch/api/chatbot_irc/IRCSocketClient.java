@@ -1,6 +1,6 @@
-package fr.funixgaming.twitch.api.chatbotIRC;
+package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.utils.TwitchThreadPool;
+import fr.funixgaming.twitch.api.tools.TwitchThreadPool;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -13,8 +13,6 @@ import java.util.Queue;
 
 public abstract class IRCSocketClient {
 
-    private final String domain;
-    private final int port;
     private final String username;
     private final String oauthToken;
 
@@ -30,23 +28,23 @@ public abstract class IRCSocketClient {
 
     protected IRCSocketClient(final String domain, final int port, final String username, final String oauthToken) {
         this.threadPool = new TwitchThreadPool(6);
-        this.domain = domain;
-        this.port = port;
         this.username = username.toLowerCase();
         this.oauthToken = oauthToken;
+
+        this.start(domain, port);
     }
 
-    public void start() {
+    private void start(final String domain, final int port) {
         new Thread(() -> {
             while (this.isRunning) {
                 try {
-                    System.out.println("Connecting to " + this.domain + ':' + this.port + "...");
+                    System.out.println("Connecting to " + domain + ':' + port + "...");
 
                     final SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-                    this.socket = (SSLSocket) factory.createSocket(this.domain, this.port);
+                    this.socket = (SSLSocket) factory.createSocket(domain, port);
 
                 } catch (IOException e) {
-                    System.err.println("Could not connect to " + this.domain + ':' + this.port + ".\nReason: " + e.getMessage());
+                    System.err.println("Could not connect to " + domain + ':' + port + ".\nReason: " + e.getMessage());
 
                     try {
                         Thread.sleep(5000);
@@ -56,7 +54,7 @@ public abstract class IRCSocketClient {
                     continue;
                 }
 
-                System.out.println("Connected to " + this.domain + ':' + this.port + " !");
+                System.out.println("Connected to " + domain + ':' + port + " !");
 
                 try {
                     reader = new BufferedInputStream(this.socket.getInputStream());

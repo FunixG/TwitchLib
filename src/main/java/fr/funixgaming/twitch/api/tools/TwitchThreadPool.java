@@ -1,4 +1,4 @@
-package fr.funixgaming.twitch.api.utils;
+package fr.funixgaming.twitch.api.tools;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

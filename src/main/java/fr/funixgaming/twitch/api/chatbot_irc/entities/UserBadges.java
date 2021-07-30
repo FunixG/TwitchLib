@@ -1,9 +1,9 @@
-package fr.funixgaming.twitch.api.chatbotIRC.entities;
+package fr.funixgaming.twitch.api.chatbot_irc.entities;
 
-import fr.funixgaming.twitch.api.chatbotIRC.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import lombok.Getter;
 
-import java.util.Map;
-
+@Getter
 public class UserBadges {
 
     private boolean isStreamer = false;
@@ -56,42 +56,6 @@ public class UserBadges {
                 }
             }
         }
-    }
-
-    public boolean isStreamer() {
-        return isStreamer;
-    }
-
-    public boolean isModerator() {
-        return isModerator;
-    }
-
-    public boolean isSubscriber() {
-        return isSubscriber;
-    }
-
-    public boolean isVIP() {
-        return isVIP;
-    }
-
-    public boolean isTwitchStaff() {
-        return isTwitchStaff;
-    }
-
-    public boolean isTwitchAdmin() {
-        return isTwitchAdmin;
-    }
-
-    public boolean isTwitchPartner() {
-        return isTwitchPartner;
-    }
-
-    public boolean isPrimeUser() {
-        return isPrimeUser;
-    }
-
-    public boolean isTurboUser() {
-        return isTurboUser;
     }
 
 }
