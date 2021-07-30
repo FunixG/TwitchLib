@@ -3,16 +3,16 @@ package fr.funixgaming.twitch.api.chatbotIRC;
 import fr.funixgaming.twitch.api.chatbotIRC.entities.*;
 import fr.funixgaming.twitch.api.chatbotIRC.events.*;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class TwitchBot extends IRCSocketClient {
 
     private static final String URL_TWITCH_CHAT_IRC = "irc.chat.twitch.tv";
     private static final int IRC_CHAT_PORT_SSL = 6697;
 
-    private final Set<TwitchEvents> twitchEvents;
+    private final List<TwitchEvents> twitchEvents = new ArrayList<>();
 
     /**
      * Class constructor to initialize TwitchIRC methods
@@ -24,12 +24,11 @@ public class TwitchBot extends IRCSocketClient {
     public TwitchBot(final String botUsername, final String oauthToken) {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oauthToken);
         super.start();
-        this.twitchEvents = new HashSet<>();
     }
 
     /**
      * Used to join a Twitch chat, needed for listening for events
-     * @param channelsName
+     * @param channelsName Twitch channel name. Example FunixGaming
      */
     public void joinChannel(final String ...channelsName) {
         final StringBuilder stringBuilder = new StringBuilder();
@@ -42,6 +41,10 @@ public class TwitchBot extends IRCSocketClient {
         super.sendMessage(stringBuilder.toString());
     }
 
+    /**
+     * Quit a twitch chat from listening from events
+     * @param channelsName Twitch channel name. Example FunixGaming
+     */
     public void quitChannel(final String ...channelsName) {
         final StringBuilder stringBuilder = new StringBuilder();
 
@@ -55,8 +58,8 @@ public class TwitchBot extends IRCSocketClient {
 
     /**
      * Used to send a message to a channel, no need to join the channel to send the message
-     * @param channelName
-     * @param message
+     * @param channelName Twitch channel name. Example FunixGaming
+     * @param message String message to send in the chat.
      */
     public void sendMessageToChannel(final String channelName, final String message) {
         super.sendMessage("PRIVMSG #" + channelName + " :" + message);
@@ -64,7 +67,7 @@ public class TwitchBot extends IRCSocketClient {
 
     /**
      * Used to register an event class to send twitch IRC events
-     * @param eventInstance
+     * @param eventInstance Class who will receive events
      */
     public void addEventListener(final TwitchEvents eventInstance) {
         this.twitchEvents.add(eventInstance);

@@ -1,5 +1,7 @@
 package fr.funixgaming.twitch.api.chatbotIRC;
 
+import fr.funixgaming.twitch.api.utils.TwitchThreadPool;
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedInputStream;
@@ -15,23 +17,23 @@ public abstract class IRCSocketClient {
     private final int port;
     private final String username;
     private final String oauthToken;
-    private final Queue<String> messagesQueue;
+
+    private final Queue<String> messagesQueue = new PriorityQueue<>();
+    private final TwitchThreadPool threadPool;
+
+    private boolean isRunning = true;
+    private boolean twitchReady = false;
 
     private SSLSocket socket;
     private BufferedInputStream reader;
     private PrintWriter writer;
-    private boolean isRunning;
-    private boolean twitchReady;
 
     protected IRCSocketClient(final String domain, final int port, final String username, final String oauthToken) {
-        this.messagesQueue = new PriorityQueue<>();
-        this.socket = null;
+        this.threadPool = new TwitchThreadPool(6);
         this.domain = domain;
         this.port = port;
         this.username = username.toLowerCase();
         this.oauthToken = oauthToken;
-        this.isRunning = true;
-        this.twitchReady = false;
     }
 
     public void start() {
@@ -39,10 +41,13 @@ public abstract class IRCSocketClient {
             while (this.isRunning) {
                 try {
                     System.out.println("Connecting to " + this.domain + ':' + this.port + "...");
+
                     final SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                     this.socket = (SSLSocket) factory.createSocket(this.domain, this.port);
+
                 } catch (IOException e) {
                     System.err.println("Could not connect to " + this.domain + ':' + this.port + ".\nReason: " + e.getMessage());
+
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException interruptedException) {
@@ -50,6 +55,7 @@ public abstract class IRCSocketClient {
                     }
                     continue;
                 }
+
                 System.out.println("Connected to " + this.domain + ':' + this.port + " !");
 
                 try {
@@ -65,19 +71,23 @@ public abstract class IRCSocketClient {
 
                     while (this.socket.isConnected()) {
                         try {
-                            byte[] messageByte = new byte[10000];
+                            final byte[] messageByte = new byte[10000];
                             int stream = this.reader.read(messageByte);
+
                             if (stream > 0) {
                                 final String message = new String(messageByte, 0, stream);
 
                                 if (message.contains(":tmi.twitch.tv 001 " + this.username + " :Welcome, GLHF!")) {
                                     this.twitchReady = true;
                                     System.out.println("Twitch IRC connected !");
-                                    while (!this.messagesQueue.isEmpty())
+
+                                    while (!this.messagesQueue.isEmpty()) {
                                         this.sendMessage(this.messagesQueue.remove());
+                                    }
                                 } else {
-                                    new Thread(() -> this.onSocketMessage(message)).start();
+                                    this.threadPool.newTask(() -> this.onSocketMessage(message));
                                 }
+
                             }
                         } catch (IOException e) {
                             if (!(e instanceof SocketException) && !e.getMessage().equals("Socket closed"))
@@ -112,14 +122,14 @@ public abstract class IRCSocketClient {
     }
 
     protected void sendMessage(final String message) {
-        new Thread(() -> {
+        this.threadPool.newTask(() -> {
             if (this.socket != null && this.socket.isConnected() && this.twitchReady) {
                 writer.println(message);
                 writer.flush();
             } else {
                 this.messagesQueue.add(message);
             }
-        }).start();
+        });
     }
 
     public boolean isRunning() {
