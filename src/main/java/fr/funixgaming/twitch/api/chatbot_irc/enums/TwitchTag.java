@@ -1,8 +1,11 @@
 package fr.funixgaming.twitch.api.chatbot_irc.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Set;
 
+@Getter
 public enum TwitchTag {
     CLEARCHAT("ban-duration"),
     CLEARMSG("login", "message", "target-msg-id"),
@@ -22,9 +25,5 @@ public enum TwitchTag {
 
     TwitchTag(final String ...tags) {
         this.tags = Set.copyOf(Arrays.asList(tags));
-    }
-
-    public Set<String> getTags() {
-        return tags;
     }
 }

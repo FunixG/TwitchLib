@@ -1,6 +1,6 @@
 package fr.funixgaming.twitch.api.chatbot_irc.entities;
 
-import fr.funixgaming.twitch.api.chatbot_irc.TagParser;
+import fr.funixgaming.twitch.api.chatbot_irc.parsers.TagParser;
 import lombok.Getter;
 
 import java.util.Arrays;

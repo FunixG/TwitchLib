@@ -1,0 +1,22 @@
+package fr.funixgaming.twitch.api.chatbot_irc.events;
+
+import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
+import fr.funixgaming.twitch.api.chatbot_irc.entities.ChatMessage;
+import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
+import lombok.Getter;
+
+@Getter
+public class NewSubscriptionGiftEvent extends TwitchEvent {
+
+    private final ChatMessage message;
+    private final String receiverUsername;
+    private final String receiverId;
+
+    public NewSubscriptionGiftEvent(final ChatMessage message, final NoticeEventParser parser, final TwitchBot bot) {
+        super(bot);
+
+        this.message = message;
+        this.receiverUsername = parser.getSubGiftReceiverUsername();
+        this.receiverId = parser.getSubGiftReceiverId();
+    }
+}

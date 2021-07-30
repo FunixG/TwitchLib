@@ -1,10 +1,12 @@
-package fr.funixgaming.twitch.api.chatbot_irc;
+package fr.funixgaming.twitch.api.chatbot_irc.parsers;
 
 import fr.funixgaming.twitch.api.chatbot_irc.enums.TwitchTag;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class TagParser {
 
     private final Map<String, String> tagMap = new HashMap<>();
@@ -12,7 +14,7 @@ public class TagParser {
     private String channel;
     private String message;
 
-    protected TagParser(String twitchString) {
+    public TagParser(String twitchString) {
         StringBuilder stringBuilder = new StringBuilder();
         String tags = null;
         String command = null;
@@ -82,21 +84,5 @@ public class TagParser {
         } catch (IllegalArgumentException e) {
             this.twitchTag = null;
         }
-    }
-
-    public TwitchTag getTwitchTag() {
-        return this.twitchTag;
-    }
-
-    public String getChannel() {
-        return this.channel;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    public Map<String, String> getTagMap() {
-        return this.tagMap;
     }
 }

@@ -36,4 +36,21 @@ public interface TwitchEvents {
      */
     default void onRoomStateChange(RoomStateChangeEvent event) {};
 
+    /**
+     * When an user has subscibed to a channel or resub
+     * @param event
+     */
+    default void onNewSubscription(NewSubscriptionEvent event) {};
+
+    /**
+     * When an subgift is done on a twitch channel
+     * @param event
+     */
+    default void onNewSubscriptionGift(NewSubscriptionGiftEvent event) {};
+
+    /**
+     * When a channel raid another channel
+     * @param event
+     */
+    default void onIncomingRaid(IncomingRaidEvent event) {};
 }
