@@ -2,6 +2,9 @@ package fr.funixgaming.twitch.api.chatbot_irc;
 
 import fr.funixgaming.twitch.api.chatbot_irc.entities.*;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
+import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
+import fr.funixgaming.twitch.api.chatbot_irc.parsers.TagParser;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +14,7 @@ public class TwitchBot extends IRCSocketClient {
     private static final String URL_TWITCH_CHAT_IRC = "irc.chat.twitch.tv";
     private static final int IRC_CHAT_PORT_SSL = 6697;
 
+    @Getter private final TwitchCommands twitchCommands;
     private final List<TwitchEvents> twitchEvents = new ArrayList<>();
 
     /**
@@ -22,6 +26,7 @@ public class TwitchBot extends IRCSocketClient {
      */
     public TwitchBot(final String botUsername, final String oauthToken) {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oauthToken);
+        this.twitchCommands = new TwitchCommands(this);
     }
 
     /**
@@ -109,9 +114,20 @@ public class TwitchBot extends IRCSocketClient {
     }
 
     private void handleUserNoticeEvent(final TwitchEvents evtInstance, final TagParser parser) {
-        final MessageEmotes emotes = new MessageEmotes(parser);
-        final User user = new User(parser);
         final ChatMember member = new ChatMember(parser);
-        //TODO parse and create event for user events (raids, subs) https://dev.twitch.tv/docs/irc/tags#usernotice-twitch-tags
+        final ChatMessage message = new ChatMessage(parser, member);
+        final NoticeEventParser noticeEventParser = new NoticeEventParser(parser);
+
+        if (noticeEventParser.getNoticeType() == null) {
+            return;
+        } else if (noticeEventParser.getNoticeType().equals(NoticeEventParser.NoticeType.SUB) ||
+        noticeEventParser.getNoticeType().equals(NoticeEventParser.NoticeType.RESUB)) {
+            evtInstance.onNewSubscription(new NewSubscriptionEvent(member, message, noticeEventParser, this));
+        } else if (noticeEventParser.getNoticeType().equals(NoticeEventParser.NoticeType.SUB_GIFT) ||
+        noticeEventParser.getNoticeType().equals(NoticeEventParser.NoticeType.SUBGIFT_ANONYM)) {
+            evtInstance.onNewSubscriptionGift(new NewSubscriptionGiftEvent(message, noticeEventParser, this));
+        } else if (noticeEventParser.getNoticeType().equals(NoticeEventParser.NoticeType.RAID)) {
+            evtInstance.onIncomingRaid(new IncomingRaidEvent(noticeEventParser, this));
+        }
     }
 }

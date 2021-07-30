@@ -1,13 +1,11 @@
 package fr.funixgaming.twitch.api.chatbot_irc.events;
 
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.Instant;
 
 @Getter
-@AllArgsConstructor
 public abstract class TwitchEvent {
 
     private final TwitchBot bot;
