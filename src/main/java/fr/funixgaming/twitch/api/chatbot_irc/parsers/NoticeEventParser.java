@@ -53,9 +53,10 @@ public class NoticeEventParser {
         this.subGiftReceiverId = tagMap.get("msg-param-recipient-id");
         this.roomId = tagMap.get("room-id");
 
-        final String nbrMonths = tagMap.get("msg-param-months");
+        final String nbrMonths = tagMap.get("msg-param-cumulative-months");
+        final String nbrMonthsGift = tagMap.get("msg-param-months");
         final String raidCount = tagMap.get("msg-param-viewerCount");
-        this.months = nbrMonths == null ? null : Integer.parseInt(nbrMonths);
+        this.months = nbrMonths == null ? (nbrMonthsGift == null ? 1 : Integer.parseInt(nbrMonthsGift)) : Integer.parseInt(nbrMonths);
         this.raidViewerCount = raidCount == null ? null : Integer.parseInt(raidCount);
     }
 

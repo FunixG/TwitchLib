@@ -9,6 +9,7 @@ import lombok.Getter;
 public class NewSubscriptionGiftEvent extends TwitchEvent {
 
     private final ChatMessage message;
+    private final Integer months;
     private final String receiverUsername;
     private final String receiverId;
     private final String channel;
@@ -17,6 +18,7 @@ public class NewSubscriptionGiftEvent extends TwitchEvent {
         super(bot);
 
         this.message = message;
+        this.months = parser.getMonths();
         this.receiverUsername = parser.getSubGiftReceiverUsername();
         this.receiverId = parser.getSubGiftReceiverId();
         this.channel = parser.getChannel();

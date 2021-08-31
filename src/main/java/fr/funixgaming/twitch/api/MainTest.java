@@ -10,7 +10,7 @@ class MainTest {
         final TwitchBot twitchBot = new TwitchBot(args[0], args[1]);
         twitchBot.addEventListener(new TestEvents());
         twitchBot.joinChannel("isjaja");
-        //twitchBot.sendMessageToChannel("isjaja", "test");
+        twitchBot.sendMessageToChannel("isjaja", "test");
         while (twitchBot.isRunning());
     }
 
@@ -78,6 +78,7 @@ class TestEvents implements TwitchEvents {
     public void onNewSubscriptionGift(NewSubscriptionGiftEvent event) {
         System.out.println("--SUB GIFT--\nchannel: " + event.getChannel() +
                 "\nMessage: " + event.getMessage().getMessage() +
+                "\nMonths: " + event.getMonths() +
                 "\nReceiverUsername: " + event.getReceiverUsername());
     }
 
