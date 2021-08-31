@@ -9,8 +9,8 @@ class MainTest {
     public static void main(String[] args) {
         final TwitchBot twitchBot = new TwitchBot(args[0], args[1]);
         twitchBot.addEventListener(new TestEvents());
-        twitchBot.joinChannel("funixgaming");
-        twitchBot.sendMessageToChannel("funixgaming", "test");
+        twitchBot.joinChannel("isjaja");
+        //twitchBot.sendMessageToChannel("isjaja", "test");
         while (twitchBot.isRunning());
     }
 
@@ -63,5 +63,28 @@ class TestEvents implements TwitchEvents {
                 "\nstate: " + event.getState() +
                 "\nisEnabled: " + event.isEnabled() +
                 "\ngetData: " + event.getData());
+    }
+
+    @Override
+    public void onNewSubscription(NewSubscriptionEvent event) {
+        System.out.println("--NEW SUB--\nchannel: " + event.getChannel() +
+                "\nMonths: " + event.getMonths() +
+                "\nSubTier: " + event.getSubTier() +
+                "\nMessageSub: " + event.getChatMessage().getMessage() +
+                "\nDisplayName: " + event.getSubUser().getDisplayName());
+    }
+
+    @Override
+    public void onNewSubscriptionGift(NewSubscriptionGiftEvent event) {
+        System.out.println("--SUB GIFT--\nchannel: " + event.getChannel() +
+                "\nMessage: " + event.getMessage().getMessage() +
+                "\nReceiverUsername: " + event.getReceiverUsername());
+    }
+
+    @Override
+    public void onIncomingRaid(IncomingRaidEvent event) {
+        System.out.println("-- RAID INCOMING --\nchannel: " + event.getChannelNameReceivingRaid() +
+                "\nViewers: " + event.getViewerCount() +
+                "\nRaiderName: " + event.getRaiderChannelName());
     }
 }
