@@ -11,6 +11,7 @@ public class NewSubscriptionGiftEvent extends TwitchEvent {
     private final ChatMessage message;
     private final String receiverUsername;
     private final String receiverId;
+    private final String channel;
 
     public NewSubscriptionGiftEvent(final ChatMessage message, final NoticeEventParser parser, final TwitchBot bot) {
         super(bot);
@@ -18,5 +19,6 @@ public class NewSubscriptionGiftEvent extends TwitchEvent {
         this.message = message;
         this.receiverUsername = parser.getSubGiftReceiverUsername();
         this.receiverId = parser.getSubGiftReceiverId();
+        this.channel = parser.getChannel();
     }
 }

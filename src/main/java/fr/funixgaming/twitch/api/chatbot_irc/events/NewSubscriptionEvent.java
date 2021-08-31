@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 public class NewSubscriptionEvent extends TwitchEvent {
 
+    private final String channel;
     private final ChatMember subUser;
     private final ChatMessage chatMessage;
     private final NoticeEventParser.SubTier subTier;
@@ -21,6 +22,7 @@ public class NewSubscriptionEvent extends TwitchEvent {
                                 final TwitchBot bot) {
         super(bot);
 
+        this.channel = parser.getChannel();
         this.subUser = chatMember;
         this.chatMessage = chatMessage;
         this.subTier = parser.getSubTier();

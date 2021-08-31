@@ -40,12 +40,14 @@ public class NoticeEventParser {
     private final String roomId;
     private final String raiderUsername;
     private final Integer raidViewerCount;
+    private final String channel;
 
     public NoticeEventParser(final TagParser parser) {
         final Map<String, String> tagMap = parser.getTagMap();
 
         parseNoticeType(tagMap);
         parseSubTierType(tagMap);
+        this.channel = parser.getChannel();
         this.raiderUsername = tagMap.get("msg-param-displayName");
         this.subGiftReceiverUsername = tagMap.get("msg-param-recipient-display-name");
         this.subGiftReceiverId = tagMap.get("msg-param-recipient-id");

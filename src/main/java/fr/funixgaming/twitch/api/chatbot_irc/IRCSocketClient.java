@@ -54,7 +54,19 @@ public abstract class IRCSocketClient {
                     continue;
                 }
 
-                System.out.println("Connected to " + domain + ':' + port + " !");
+                final Thread checkLoggedThread = new Thread(() -> {
+                    try {
+                        Thread.sleep(10000);
+                        if (!this.twitchReady) {
+                            System.out.println("Twitch not responding, retry login...");
+                            this.socket.close();
+                        }
+                    } catch (InterruptedException | IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                checkLoggedThread.setName("CheckLoggedThread");
+                checkLoggedThread.start();
 
                 try {
                     reader = new BufferedInputStream(this.socket.getInputStream());
@@ -67,7 +79,7 @@ public abstract class IRCSocketClient {
                     this.writer.println("CAP REQ :twitch.tv/membership");
                     this.writer.flush();
 
-                    while (this.socket.isConnected()) {
+                    while (this.socket.isConnected() && !this.socket.isClosed()) {
                         try {
                             final byte[] messageByte = new byte[10000];
                             int stream = this.reader.read(messageByte);
@@ -77,7 +89,7 @@ public abstract class IRCSocketClient {
 
                                 if (message.contains(":tmi.twitch.tv 001 " + this.username + " :Welcome, GLHF!")) {
                                     this.twitchReady = true;
-                                    System.out.println("Twitch IRC connected !");
+                                    System.out.println("Connected to " + domain + ':' + port + " !");
 
                                     while (!this.messagesQueue.isEmpty()) {
                                         this.sendMessage(this.messagesQueue.remove());
@@ -88,7 +100,7 @@ public abstract class IRCSocketClient {
 
                             }
                         } catch (IOException e) {
-                            if (!(e instanceof SocketException) && !e.getMessage().equals("Socket closed"))
+                            if (!this.socket.isClosed())
                                 e.printStackTrace();
                         }
                     }
