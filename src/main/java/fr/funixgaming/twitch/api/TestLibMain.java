@@ -153,10 +153,6 @@ class TestLibMain {
             final TwitchAuth des = TwitchAuth.fromJson(twitchAuth.toJson(true));
             System.out.println(des.toJson(true));
             System.out.println("isValid: " + des.isValid());
-
-            System.out.println("TEST EXPIRATION");
-            final TwitchAuth exp = new TwitchAuth(this.apiClientId, this.apiClientSecret, "blabla", Date.from(Instant.now().minusSeconds(100)));
-            System.out.println("isValid: " + exp.isValid());
         } catch (IOException e) {
             e.printStackTrace();
         }
