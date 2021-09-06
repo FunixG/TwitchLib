@@ -57,15 +57,11 @@ public class TwitchCommands {
         bot.sendMessage("PRIVMSG #" + channelWhoRaids + " :/unraid");
     }
 
-    public void sendPrivateMessage(final String user, final String message) {
-        bot.sendMessage("PRIVMSG :/w " + user + ' ' + message);
-    }
-
     public void addStreamMarker(final String channel, final String description) {
         bot.sendMessage("PRIVMSG #" + channel + " :/marker " + (description == null ? "" : description));
     }
 
-    public void setEmoteOnly(final String channel) {
+    public void activateEmoteOnly(final String channel) {
         bot.sendMessage("PRIVMSG #" + channel + " :/emoteonly");
     }
 
@@ -101,7 +97,7 @@ public class TwitchCommands {
         bot.sendMessage("PRIVMSG #" + channel + " :/followersoff");
     }
 
-    public void activateSlowMode(final String channel, final String cooldown) {
+    public void activateSlowMode(final String channel, final int cooldown) {
         bot.sendMessage("PRIVMSG #" + channel + " :/slow " + cooldown);
     }
 
