@@ -23,16 +23,15 @@ public class HttpCalls {
 
     @Getter
     @AllArgsConstructor
-    public static class HttpResponse {
+    public static class HttpJSONResponse {
         private final JsonElement body;
         private final Integer responseCode;
     }
 
-    public static HttpResponse performRequest(final URL url,
-                                             final HttpType httpType,
-                                             final String body,
-                                             final String authToken,
-                                             final boolean isJson) throws IOException {
+    public static HttpJSONResponse performJSONRequest(final URL url,
+                                                      final HttpType httpType,
+                                                      final String body,
+                                                      final String authToken) throws IOException {
         HttpURLConnection connection = null;
         OutputStream outputStream = null;
         OutputStreamWriter outputStreamWriter = null;
@@ -47,10 +46,8 @@ public class HttpCalls {
                 connection.setRequestProperty("Authorization", "Bearer " + authToken);
             }
 
-            if (isJson) {
-                connection.setRequestProperty("Content-Type", "application/json");
-                connection.setRequestProperty("Accept", "application/json");
-            }
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
 
             connection.setRequestMethod(httpType.name());
 
@@ -69,7 +66,13 @@ public class HttpCalls {
             final JsonElement response = JsonParser.parseReader(inputStreamReader);
             final Integer responseCode = connection.getResponseCode();
 
-            return new HttpResponse(response, responseCode);
+            return new HttpJSONResponse(response, responseCode);
+        } catch (IOException e) {
+            if (connection != null) {
+                throw new IOException(connection.getResponseMessage(), e);
+            } else {
+                throw e;
+            }
         } finally {
             try {
                 if (connection != null) {

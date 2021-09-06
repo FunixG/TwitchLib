@@ -36,4 +36,5 @@ public class TwitchScopes {
     public static final String USER_READ_EMAIL = "user:read:email";
     public static final String USER_READ_FOLLOWS = "user:read:follows";
     public static final String USER_READ_SUBS = "user:read:subscriptions";
+    public static final String WHISPER = "whispers:edit";
 }

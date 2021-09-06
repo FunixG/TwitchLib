@@ -68,6 +68,10 @@ public class TwitchBot extends IRCSocketClient {
         super.sendMessage("PRIVMSG #" + channelName + " :" + message);
     }
 
+    public void sendPrivateMessage(final String user, final String message) {
+        super.sendMessage("PRIVMSG :/w " + user + ' ' + message);
+    }
+
     /**
      * Used to register an event class to send twitch IRC events
      * @param eventInstance Class who will receive events
