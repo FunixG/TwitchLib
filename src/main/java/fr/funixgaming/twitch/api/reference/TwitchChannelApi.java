@@ -11,6 +11,7 @@ import fr.funixgaming.twitch.api.reference.entities.responses.channel.Channel;
 import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelEmotes;
 import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelReward;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
+import fr.funixgaming.twitch.api.reference.entities.responses.channel.ClipCreation;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 
@@ -29,6 +30,7 @@ public class TwitchChannelApi {
     private final static String PATH_CHANNEL = TwitchURLS.TWITCH_API_PATH + "/channels";
     private final static String PATH_CHANNEL_POINTS = TwitchURLS.TWITCH_API_PATH + "/channel_points/custom_rewards";
     private final static String PATH_CHANNEL_CHAT = TwitchURLS.TWITCH_API_PATH + "/chat/emotes";
+    private final static String PATH_CHANNEL_CLIP = TwitchURLS.TWITCH_API_PATH + "/clips";
 
     private final TwitchAuth twitchAuth;
 
@@ -177,15 +179,14 @@ public class TwitchChannelApi {
                             reward.get("is_in_stock").getAsBoolean(),
                             usageStream
                     ));
-                    return rewards;
                 }
+                return rewards;
             } else {
                 throw new IOException("An error occurred while fetching channel rewards. Http Error code : " + response.getResponseCode());
             }
         } catch (URISyntaxException err) {
             throw new IOException(err);
         }
-        return null;
     }
 
     public Set<ChannelEmotes> getChannelEmotes(final String channelId) throws IOException {
@@ -237,6 +238,35 @@ public class TwitchChannelApi {
                 return emotes;
             } else {
                 throw new IOException("An error occurred while fetching channel emotes. Http Error code : " + response.getResponseCode());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public ClipCreation createClip(final String channelId) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchURLS.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_CLIP,
+                    "broadcaster_id=" + channelId,
+                    null
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.POST, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject clip = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
+                return new ClipCreation(
+                        clip.get("id").getAsString(),
+                        clip.get("edit_url").getAsString()
+                );
+            } else {
+                throw new IOException("An error occurred while creating a clip on channel " + channelId + ". Error code : " + response.getResponseCode());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
