@@ -3,17 +3,16 @@ package fr.funixgaming.twitch.api.reference;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fr.funixgaming.twitch.api.TwitchURLS;
+import fr.funixgaming.twitch.api.TwitchResources;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
+import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.Channel;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelEmotes;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelReward;
+import fr.funixgaming.twitch.api.reference.entities.responses.channel.*;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.ClipCreation;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,14 +26,14 @@ import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpJSONResponse;
 @AllArgsConstructor
 public class TwitchChannelApi {
 
-    private final static String PATH_CHANNEL = TwitchURLS.TWITCH_API_PATH + "/channels";
-    private final static String PATH_CHANNEL_POINTS = TwitchURLS.TWITCH_API_PATH + "/channel_points/custom_rewards";
-    private final static String PATH_CHANNEL_CHAT = TwitchURLS.TWITCH_API_PATH + "/chat/emotes";
-    private final static String PATH_CHANNEL_CLIP = TwitchURLS.TWITCH_API_PATH + "/clips";
+    private final static String PATH_CHANNEL = TwitchResources.TWITCH_API_PATH + "/channels";
+    private final static String PATH_CHANNEL_POINTS = TwitchResources.TWITCH_API_PATH + "/channel_points/custom_rewards";
+    private final static String PATH_CHANNEL_CHAT = TwitchResources.TWITCH_API_PATH + "/chat/emotes";
+    private final static String PATH_CHANNEL_CLIP = TwitchResources.TWITCH_API_PATH + "/clips";
 
     private final TwitchAuth twitchAuth;
 
-    public Channel getChannelInformation(final String channelId) throws IOException {
+    public Channel getChannelInformation(@NonNull final String channelId) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -42,7 +41,7 @@ public class TwitchChannelApi {
 
             final URI url = new URI(
                     "https",
-                    TwitchURLS.DOMAIN_TWITCH_API,
+                    TwitchResources.DOMAIN_TWITCH_API,
                     PATH_CHANNEL,
                     "broadcaster_id=" + channelId,
                     null
@@ -69,7 +68,7 @@ public class TwitchChannelApi {
         }
     }
 
-    public void updateChannelInformation(final String channelId, final UpdateChannel updateChannel) throws IOException {
+    public void updateChannelInformation(@NonNull final String channelId, @NonNull final UpdateChannel updateChannel) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -77,7 +76,7 @@ public class TwitchChannelApi {
 
             final URI url = new URI(
                     "https",
-                    TwitchURLS.DOMAIN_TWITCH_API,
+                    TwitchResources.DOMAIN_TWITCH_API,
                     PATH_CHANNEL,
                     "broadcaster_id=" + channelId,
                     null
@@ -106,7 +105,7 @@ public class TwitchChannelApi {
         }
     }
 
-    public Set<ChannelReward> getChannelCustomRewards(final String channelId) throws IOException {
+    public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -114,7 +113,7 @@ public class TwitchChannelApi {
 
             final URI url = new URI(
                     "https",
-                    TwitchURLS.DOMAIN_TWITCH_API,
+                    TwitchResources.DOMAIN_TWITCH_API,
                     PATH_CHANNEL_POINTS,
                     "broadcaster_id=" + channelId,
                     null
@@ -189,7 +188,7 @@ public class TwitchChannelApi {
         }
     }
 
-    public Set<ChannelEmotes> getChannelEmotes(final String channelId) throws IOException {
+    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -197,7 +196,7 @@ public class TwitchChannelApi {
 
             final URI url = new URI(
                     "https",
-                    TwitchURLS.DOMAIN_TWITCH_API,
+                    TwitchResources.DOMAIN_TWITCH_API,
                     PATH_CHANNEL_CHAT,
                     "broadcaster_id=" + channelId,
                     null
@@ -244,7 +243,7 @@ public class TwitchChannelApi {
         }
     }
 
-    public ClipCreation createClip(final String channelId) throws IOException {
+    public ClipCreation createClip(@NonNull final String channelId) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -252,7 +251,7 @@ public class TwitchChannelApi {
 
             final URI url = new URI(
                     "https",
-                    TwitchURLS.DOMAIN_TWITCH_API,
+                    TwitchResources.DOMAIN_TWITCH_API,
                     PATH_CHANNEL_CLIP,
                     "broadcaster_id=" + channelId,
                     null
@@ -267,6 +266,82 @@ public class TwitchChannelApi {
                 );
             } else {
                 throw new IOException("An error occurred while creating a clip on channel " + channelId + ". Error code : " + response.getResponseCode());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+            final Set<String> searchQuery = new HashSet<>();
+
+            if (search != null) {
+                if (search.getNumberOfClips() != null) {
+                    searchQuery.add("first=" + search.getNumberOfClips());
+                }
+                if (search.getClipAfterCursor() != null) {
+                    searchQuery.add("after=" + search.getClipAfterCursor());
+                }
+                if (search.getClipBeforeCursor() != null) {
+                    searchQuery.add("before=" + search.getClipBeforeCursor());
+                }
+                if (search.getEndedAtSearch() != null) {
+                    searchQuery.add("ended_at=" + TwitchResources.dateToRFC3339(search.getEndedAtSearch()));
+                }
+                if (search.getStartedAtSearch() != null) {
+                    searchQuery.add("started_at=" + TwitchResources.dateToRFC3339(search.getStartedAtSearch()));
+                }
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_CLIP,
+                    "broadcaster_id=" + channelId + (searchQuery.size() > 0 ? "&" + String.join("&", searchQuery) : ""),
+                    null
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Clip> clips = new HashSet<>();
+                final JsonObject body = response.getBody().getAsJsonObject();
+                final JsonArray clipsGet = body.get("data").getAsJsonArray();
+                final JsonElement pagination = body.get("pagination");
+                String cursor = null;
+
+                if (!pagination.isJsonNull()) {
+                    cursor = pagination.getAsJsonObject().get("cursor").getAsString();
+                }
+
+                for (final JsonElement clip : clipsGet) {
+                    final JsonObject data = clip.getAsJsonObject();
+
+                    clips.add(new Clip(
+                            data.get("id").getAsString(),
+                            data.get("url").getAsString(),
+                            data.get("embed_url").getAsString(),
+                            data.get("broadcaster_id").getAsString(),
+                            data.get("broadcaster_name").getAsString(),
+                            data.get("creator_id").getAsString(),
+                            data.get("creator_name").getAsString(),
+                            data.get("video_id").getAsString(),
+                            data.get("game_id").getAsString(),
+                            data.get("language").getAsString(),
+                            data.get("title").getAsString(),
+                            data.get("view_count").getAsInt(),
+                            TwitchResources.rfc3339ToDate(data.get("created_at").getAsString()),
+                            data.get("thumbnail_url").getAsString(),
+                            data.get("duration").getAsFloat(),
+                            cursor
+                    ));
+                }
+                return clips;
+            } else {
+                throw new IOException("An error occurred while fetching clips on channel " + channelId + ". Error code : " + response.getResponseCode());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);

@@ -171,6 +171,8 @@ class TestLibMain {
             Thread.sleep(1000);
             System.out.println("CHANNEL CHAT EMOTES\n" + channelApi.getChannelEmotes(channelId));
             Thread.sleep(1000);
+            System.out.println("CHANNEL CHAT CLIPS\n" + channelApi.getChannelClips(channelId, null));
+            Thread.sleep(1000);
             System.out.println("CHANNEL CHAT REWARDS\n" + channelApi.getChannelCustomRewards(channelId));
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
