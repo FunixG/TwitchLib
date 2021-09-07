@@ -12,6 +12,7 @@ import fr.funixgaming.twitch.api.reference.entities.responses.channel.*;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Clip;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.ClipCreation;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Game;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -26,12 +27,13 @@ import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpType;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpJSONResponse;
 
 @AllArgsConstructor
-public class TwitchChannelApi {
+public class TwitchApi {
 
     private final static String PATH_CHANNEL = TwitchResources.TWITCH_API_PATH + "/channels";
     private final static String PATH_CHANNEL_POINTS = TwitchResources.TWITCH_API_PATH + "/channel_points/custom_rewards";
     private final static String PATH_CHANNEL_CHAT = TwitchResources.TWITCH_API_PATH + "/chat/emotes";
     private final static String PATH_CHANNEL_CLIP = TwitchResources.TWITCH_API_PATH + "/clips";
+    private final static String PATH_CHANNEL_GAMES = TwitchResources.TWITCH_API_PATH + "/games";
 
     private final TwitchAuth twitchAuth;
 
@@ -353,6 +355,47 @@ public class TwitchChannelApi {
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
+        }
+    }
+
+    public Game getGameById(final String gameId) throws IOException {
+        return getGame(gameId, true);
+    }
+
+    public Game getGameByName(final String gameName) throws IOException {
+        return getGame(gameName, false);
+    }
+
+    private Game getGame(final String data, boolean isID) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_GAMES,
+                    (isID ? "id" : "name") + "=" + data,
+                    null
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject dataGet = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
+
+                return new Game(
+                        dataGet.get("id").getAsString(),
+                        dataGet.get("name").getAsString(),
+                        dataGet.get("box_art_url").getAsString()
+                );
+            } else {
+                throw new IOException("An error occurred while fetching game " + data + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        } catch (URISyntaxException err) {
+            throw new IOException(err);
         }
     }
 
