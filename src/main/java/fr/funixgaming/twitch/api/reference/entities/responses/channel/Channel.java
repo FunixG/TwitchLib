@@ -1,12 +1,12 @@
 package fr.funixgaming.twitch.api.reference.entities.responses.channel;
 
-import fr.funixgaming.twitch.api.reference.entities.TwitchApiEntity;
+import fr.funixgaming.twitch.api.reference.entities.ApiEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class Channel extends TwitchApiEntity {
+public class Channel extends ApiEntity {
     private final String broadcasterId;
     private final String broadcasterName;
     private final String broadcasterDisplayName;

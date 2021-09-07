@@ -1,12 +1,12 @@
 package fr.funixgaming.twitch.api.reference.entities.responses.channel;
 
-import fr.funixgaming.twitch.api.reference.entities.TwitchApiEntity;
+import fr.funixgaming.twitch.api.reference.entities.ApiEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ClipCreation extends TwitchApiEntity {
+public class ClipCreation extends ApiEntity {
     private final String id;
     private final String editUrl;
 

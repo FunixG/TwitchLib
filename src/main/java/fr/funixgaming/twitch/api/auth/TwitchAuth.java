@@ -9,11 +9,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 
-import static fr.funixgaming.twitch.api.TwitchURLS.DOMAIN_TWITCH_AUTH_API;
+import static fr.funixgaming.twitch.api.TwitchResources.DOMAIN_TWITCH_AUTH_API;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.*;
 
 @Getter
@@ -71,7 +70,7 @@ public class TwitchAuth {
                 final JsonObject body = response.getBody().getAsJsonObject();
 
                 this.accessToken = body.get("access_token").getAsString();
-                this.expirationDate = addSecondsToNowDate(body.get("expires_in").getAsInt());
+                this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
             } else {
                 throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
             }
@@ -103,14 +102,6 @@ public class TwitchAuth {
      */
     public static TwitchAuth fromJson(final String json) {
         return new Gson().fromJson(json, TwitchAuth.class);
-    }
-
-    private Date addSecondsToNowDate(final int seconds) {
-        final Calendar calendar = Calendar.getInstance();
-
-        calendar.setTime(new Date());
-        calendar.add(Calendar.SECOND, seconds);
-        return calendar.getTime();
     }
 
 }

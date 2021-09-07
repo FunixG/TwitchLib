@@ -1,14 +1,14 @@
 package fr.funixgaming.twitch.api.reference.entities.responses.channel;
 
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
-import fr.funixgaming.twitch.api.reference.entities.TwitchApiEntity;
+import fr.funixgaming.twitch.api.reference.entities.ApiEntity;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ChannelEmotes extends TwitchApiEntity {
+public class ChannelEmotes extends ApiEntity {
     public enum EmoteType {
         BITS,
         FOLLOWER,
