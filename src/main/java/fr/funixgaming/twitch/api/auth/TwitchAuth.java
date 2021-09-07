@@ -65,7 +65,7 @@ public class TwitchAuth {
                     null
             );
 
-            final HttpJSONResponse response = performJSONRequest(url.toURL(), HttpType.POST, null, null);
+            final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
             if (response.getResponseCode() == 200) {
                 final JsonObject body = response.getBody().getAsJsonObject();
 

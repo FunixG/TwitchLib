@@ -1,4 +1,4 @@
-package fr.funixgaming.twitch.api.reference.entities.responses.channel;
+package fr.funixgaming.twitch.api.reference.entities.responses.twitch;
 
 import fr.funixgaming.twitch.api.reference.entities.ApiEntity;
 import lombok.AllArgsConstructor;

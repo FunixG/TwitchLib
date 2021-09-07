@@ -7,13 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class HttpCalls {
 
@@ -30,69 +27,46 @@ public class HttpCalls {
         private final Integer responseCode;
     }
 
-    public static HttpJSONResponse performJSONRequest(final URL url,
+    public static HttpJSONResponse performJSONRequest(final URI uri,
                                                       final HttpType httpType,
-                                                      final String body,
+                                                      String body,
                                                       final TwitchAuth twitchAuth) throws IOException {
-        HttpURLConnection connection = null;
-        OutputStream outputStream = null;
-        OutputStreamWriter outputStreamWriter = null;
-        InputStreamReader inputStreamReader = null;
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+
+        if (body == null) {
+            body = "";
+        }
+
+        requestBuilder.uri(uri);
+        switch (httpType) {
+            case GET:
+                requestBuilder.GET();
+                break;
+            case POST:
+                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+                break;
+            case PATCH:
+                requestBuilder.method(HttpType.PATCH.name(), HttpRequest.BodyPublishers.ofString(body));
+                break;
+        }
+        if (twitchAuth != null) {
+            requestBuilder.setHeader("Authorization", "Bearer " + twitchAuth.getAccessToken());
+            requestBuilder.setHeader("Client-Id", twitchAuth.getClientId());
+        }
+        requestBuilder.setHeader("Content-Type", "application/json");
+        requestBuilder.setHeader("Accept", "application/json");
 
         try {
-            final URLConnection urlConnection = url.openConnection();
+            final HttpRequest request = requestBuilder.build();
+            final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            connection = (HttpURLConnection) urlConnection;
-
-            if (twitchAuth != null) {
-                connection.setRequestProperty("Authorization", "Bearer " + twitchAuth.getAccessToken());
-                connection.setRequestProperty("Client-Id", twitchAuth.getClientId());
-            }
-
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-
-            connection.setRequestMethod(httpType.name());
-
-            if (body != null) {
-                connection.setDoOutput(true);
-                outputStream = connection.getOutputStream();
-                outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-                outputStreamWriter.write(new String(body.getBytes(StandardCharsets.ISO_8859_1)));
-                outputStreamWriter.flush();
-            }
-
-            connection.connect();
-
-            inputStreamReader = new InputStreamReader(connection.getInputStream());
-
-            final JsonElement response = JsonParser.parseReader(inputStreamReader);
-            final Integer responseCode = connection.getResponseCode();
-
-            return new HttpJSONResponse(response, responseCode);
-        } catch (IOException e) {
-            if (connection != null) {
-                throw new IOException(connection.getResponseMessage(), e);
-            } else {
-                throw e;
-            }
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                if (outputStream != null) {
-                    outputStream.close();
-                }
-                if (outputStreamWriter != null) {
-                    outputStreamWriter.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return new HttpJSONResponse(
+                    JsonParser.parseString(response.body()),
+                    response.statusCode()
+            );
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
