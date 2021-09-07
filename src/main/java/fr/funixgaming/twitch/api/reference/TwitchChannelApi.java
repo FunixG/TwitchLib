@@ -10,6 +10,8 @@ import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
 import fr.funixgaming.twitch.api.reference.entities.responses.channel.*;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Clip;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.ClipCreation;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -47,7 +49,7 @@ public class TwitchChannelApi {
                     null
             );
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.GET, null, twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
                 final JsonObject data = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
                 return new Channel(
@@ -68,6 +70,9 @@ public class TwitchChannelApi {
         }
     }
 
+    /**
+     * TODO Not working, need to fetch token from a login twitch page
+     */
     public void updateChannelInformation(@NonNull final String channelId, @NonNull final UpdateChannel updateChannel) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
@@ -96,15 +101,18 @@ public class TwitchChannelApi {
                 body.addProperty("delay", updateChannel.getDelay());
             }
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.PATCH, body.toString(), twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.PATCH, body.toString(), twitchAuth);
             if (response.getResponseCode() != 204) {
-                throw new IOException("An error occurred while updating channelId " + channelId + ". Http error code : " + response.getResponseCode());
+                throw new IOException("An error occurred while updating channelId " + channelId + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
             }
         } catch (URISyntaxException err) {
             throw new IOException(err);
         }
     }
 
+    /**
+     * TODO Not working, need to fetch token from a login twitch page
+     */
     public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws IOException {
         try {
             if (!twitchAuth.isValid()) {
@@ -119,7 +127,7 @@ public class TwitchChannelApi {
                     null
             );
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.GET, null, twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
                 final Set<ChannelReward> rewards = new HashSet<>();
                 final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
@@ -202,7 +210,7 @@ public class TwitchChannelApi {
                     null
             );
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.GET, null, twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
                 final Set<ChannelEmotes> emotes = new HashSet<>();
                 final JsonArray emotesData = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
@@ -236,7 +244,7 @@ public class TwitchChannelApi {
                 }
                 return emotes;
             } else {
-                throw new IOException("An error occurred while fetching channel emotes. Http Error code : " + response.getResponseCode());
+                throw new IOException("An error occurred while fetching channel emotes.\nHttp Error code : " + response.getResponseCode() + "\nBody: " + response.getBody());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
@@ -257,7 +265,7 @@ public class TwitchChannelApi {
                     null
             );
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.POST, null, twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.POST, null, twitchAuth);
             if (response.getResponseCode() == 200) {
                 final JsonObject clip = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
                 return new ClipCreation(
@@ -305,7 +313,7 @@ public class TwitchChannelApi {
                     null
             );
 
-            final HttpJSONResponse response = HttpCalls.performJSONRequest(url.toURL(), HttpType.GET, null, twitchAuth);
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
                 final Set<Clip> clips = new HashSet<>();
                 final JsonObject body = response.getBody().getAsJsonObject();
