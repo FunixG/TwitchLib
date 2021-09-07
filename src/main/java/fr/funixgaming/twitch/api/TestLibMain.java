@@ -7,6 +7,7 @@ import fr.funixgaming.twitch.api.chatbot_irc.TwitchCommands;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.reference.TwitchChannelApi;
+import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -171,7 +172,13 @@ class TestLibMain {
             Thread.sleep(1000);
             System.out.println("CHANNEL CHAT EMOTES\n" + channelApi.getChannelEmotes(channelId));
             Thread.sleep(1000);
-            System.out.println("CHANNEL CHAT CLIPS\n" + channelApi.getChannelClips(channelId, null));
+            System.out.println("CHANNEL CHAT CLIPS NO PARAMS\n" + channelApi.getChannelClips(channelId, null));
+            Thread.sleep(1000);
+            final ClipSearch search = new ClipSearch();
+            search.setNumberOfClips(5);
+            search.setStartedAtSearch(Date.from(Instant.now().minusSeconds(864000))); //10 jours
+            search.setEndedAtSearch(Date.from(Instant.now()));
+            System.out.println("CHANNEL CHAT CLIPS PARAMS LIMIT CLIPS AND DATE\n" + channelApi.getChannelClips(channelId, search));
             Thread.sleep(1000);
             System.out.println("CHANNEL CHAT REWARDS\n" + channelApi.getChannelCustomRewards(channelId));
         } catch (IOException | InterruptedException e) {
