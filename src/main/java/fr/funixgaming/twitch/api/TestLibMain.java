@@ -6,6 +6,7 @@ import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchCommands;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
+import fr.funixgaming.twitch.api.reference.TwitchChannelApi;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +23,7 @@ class TestLibMain {
     private String botOauthToken;
     private String apiClientId;
     private String apiClientSecret;
+    private TwitchAuth twitchAuth;
 
     private static class TestEvents implements TwitchEvents {
 
@@ -112,7 +114,7 @@ class TestLibMain {
         botThread.start();
     }
 
-    private void getAuth() {
+    private void getAuth(boolean testPrintAuth) {
         try {
             final TwitchAuth twitchAuth = new TwitchAuth(this.apiClientId, this.apiClientSecret, Set.of(
                     TwitchScopes.CHANNEL_MANAGE_SCHEDULE,
@@ -145,15 +147,32 @@ class TestLibMain {
                     TwitchScopes.USER_READ_SUBS,
                     TwitchScopes.WHISPER
             ));
+            this.twitchAuth = twitchAuth;
 
-            System.out.println(twitchAuth.toJson(true));
-            System.out.println("isValid: " + twitchAuth.isValid());
+            if (testPrintAuth) {
+                System.out.println(twitchAuth.toJson(true));
+                System.out.println("isValid: " + twitchAuth.isValid());
 
-            System.out.println("TEST DESERIALIZE");
-            final TwitchAuth des = TwitchAuth.fromJson(twitchAuth.toJson(true));
-            System.out.println(des.toJson(true));
-            System.out.println("isValid: " + des.isValid());
+                System.out.println("TEST DESERIALIZE");
+                final TwitchAuth des = TwitchAuth.fromJson(twitchAuth.toJson(true));
+                System.out.println(des.toJson(true));
+                System.out.println("isValid: " + des.isValid());
+            }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void testChannelApi(final String channelId) {
+        try {
+            final TwitchChannelApi channelApi = new TwitchChannelApi(this.twitchAuth);
+
+            System.out.println("CHANNEL INFO\n" + channelApi.getChannelInformation(channelId));
+            Thread.sleep(1000);
+            System.out.println("CHANNEL CHAT EMOTES\n" + channelApi.getChannelEmotes(channelId));
+            Thread.sleep(1000);
+            System.out.println("CHANNEL CHAT REWARDS\n" + channelApi.getChannelCustomRewards(channelId));
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -165,8 +184,11 @@ class TestLibMain {
         main.setApiClientId(args[2]);
         main.setApiClientSecret(args[3]);
 
+        final String channelIdToTest = args[4];
+
         main.startBot();
-        main.getAuth();
+        main.getAuth(false);
+        main.testChannelApi(channelIdToTest);
     }
 
 }

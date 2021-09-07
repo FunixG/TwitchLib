@@ -21,7 +21,7 @@ public class NoticeEventParser {
         private final String twitchTag;
     }
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     @AllArgsConstructor
     public enum SubTier {
         PRIME("Prime"),
