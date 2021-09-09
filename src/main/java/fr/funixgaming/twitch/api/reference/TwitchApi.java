@@ -13,6 +13,7 @@ import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Clip;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.ClipCreation;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Game;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.User;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -37,6 +38,7 @@ public class TwitchApi {
     private final static String PATH_CHANNEL_CLIP = TwitchResources.TWITCH_API_PATH + "/clips";
     private final static String PATH_CHANNEL_GAMES = TwitchResources.TWITCH_API_PATH + "/games";
     private final static String PATH_CHANNEL_STREAMS = TwitchResources.TWITCH_API_PATH + "/streams";
+    private final static String PATH_CHANNEL_USERS = TwitchResources.TWITCH_API_PATH + "/users";
 
     private final TwitchAuth twitchAuth;
 
@@ -375,6 +377,71 @@ public class TwitchApi {
 
     public Set<Stream> getStreamsById(final Set<String> idList) throws IOException {
         return getStreamInfo(idList, true);
+    }
+
+    public Set<User> getUsersByUserName(final Set<String> userNames) throws IOException {
+        return getUsers(userNames, false);
+    }
+
+    public Set<User> getUsersById(final Set<String> idList) throws IOException {
+        return getUsers(idList, true);
+    }
+
+    private Set<User> getUsers(final Set<String> userList, boolean isID) throws IOException {
+        try {
+            if (userList.isEmpty()) {
+                throw new IOException("Users list empty");
+            }
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            userList.forEach(user -> user = user.toLowerCase());
+            final String searchQuery = (isID ? "id" : "login") + '=';
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_USERS,
+                    searchQuery + String.join("&" + searchQuery, userList),
+                    null
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<User> users = new HashSet<>();
+                final JsonArray fetched = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement element : fetched) {
+                    final JsonObject data = element.getAsJsonObject();
+                    final User.BroadcasterType broadcasterType;
+                    final String bdType = data.get("broadcaster_type").getAsString();
+
+                    if (bdType.equals("partner")) {
+                        broadcasterType = User.BroadcasterType.PARTNER;
+                    } else if (bdType.equals("affiliate")) {
+                        broadcasterType = User.BroadcasterType.AFFILIATE;
+                    } else {
+                        broadcasterType = User.BroadcasterType.NORMAL;
+                    }
+
+                    users.add(new User(
+                            broadcasterType,
+                            data.get("description").getAsString(),
+                            data.get("display_name").getAsString(),
+                            data.get("id").getAsString(),
+                            data.get("login").getAsString(),
+                            data.get("offline_image_url").getAsString(),
+                            data.get("profile_image_url").getAsString(),
+                            data.get("view_count").getAsInt(),
+                            Date.from(Instant.parse(data.get("created_at").getAsString()))
+                    ));
+                }
+                return users;
+            } else {
+                throw new IOException("An error occurred while fetching users.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
     }
 
     private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws IOException {
