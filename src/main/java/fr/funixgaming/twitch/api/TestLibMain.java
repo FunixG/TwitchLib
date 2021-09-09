@@ -7,6 +7,7 @@ import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
+import fr.funixgaming.twitch.api.reference.entities.responses.channel.Stream;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -165,29 +166,36 @@ class TestLibMain {
 
     private void testChannelApi(final String channelId) {
         try {
-            final TwitchApi channelApi = new TwitchApi(this.twitchAuth);
+            final TwitchApi api = new TwitchApi(this.twitchAuth);
 
-            System.out.println("CHANNEL INFO\n" + channelApi.getChannelInformation(channelId));
+            System.out.println("CHANNEL INFO\n" + api.getChannelInformation(channelId));
             Thread.sleep(1000);
             /*final UpdateChannel updateChannel = new UpdateChannel();
             updateChannel.setTitle("Test api");
-            channelApi.updateChannelInformation(channelId, updateChannel);*/
-            System.out.println("CHANNEL CHAT EMOTES\n" + channelApi.getChannelEmotes(channelId));
+            api.updateChannelInformation(channelId, updateChannel);*/
+            System.out.println("CHANNEL CHAT EMOTES\n" + api.getChannelEmotes(channelId));
             Thread.sleep(1000);
-            System.out.println("CHANNEL CHAT CLIPS NO PARAMS\n" + channelApi.getChannelClips(channelId, null));
+            System.out.println("CHANNEL CHAT CLIPS NO PARAMS\n" + api.getChannelClips(channelId, null));
             Thread.sleep(1000);
             final ClipSearch search = new ClipSearch();
             search.setNumberOfClips(5);
             search.setStartedAtSearch(Date.from(Instant.now().minusSeconds(864000))); //10 jours
             search.setEndedAtSearch(Date.from(Instant.now()));
-            System.out.println("CHANNEL CHAT CLIPS PARAMS LIMIT CLIPS AND DATE\n" + channelApi.getChannelClips(channelId, search));
+            System.out.println("CHANNEL CHAT CLIPS PARAMS LIMIT CLIPS AND DATE\n" + api.getChannelClips(channelId, search));
             Thread.sleep(1000);
-            System.out.println("GET MINECRAFT GAME BY NAME\n" + channelApi.getGameByName("minecraft"));
+            System.out.println("GET MINECRAFT GAME BY NAME\n" + api.getGameByName("minecraft"));
             Thread.sleep(1000);
-            System.out.println("GET MINECRAFT GAME BY ID\n" + channelApi.getGameById("27471"));
+            System.out.println("GET MINECRAFT GAME BY ID\n" + api.getGameById("27471"));
+
+            Thread.sleep(1000);
+            System.out.println("GET FUNIXGAMING STREAM\n" + api.getStreamsByUserNames(Set.of("funixgaming")));
+            Thread.sleep(1000);
+            System.out.println("GET SOLARY STREAM\n" + api.getStreamsByUserNames(Set.of("solary")));
+            Thread.sleep(1000);
+            System.out.println("GET MULTIPLE STREAMS\n" + api.getStreamsByUserNames(Set.of("ponce", "domingo", "aypierre")));
 
             /*Thread.sleep(1000);
-            System.out.println("CHANNEL CHAT REWARDS\n" + channelApi.getChannelCustomRewards(channelId));*/
+            System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));*/
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
