@@ -198,7 +198,12 @@ class TestLibMain {
             System.out.println("GET USER FUNIXGAMING\n" + api.getUsersByUserName(Set.of("funixgaming")));
             Thread.sleep(1000);
             System.out.println("GET MULTIPLE USERS\n" + api.getUsersByUserName(Set.of("drakkades", "luxlechien", "jestair", "zerator", "funixbot")));
-
+            Thread.sleep(1000);
+            System.out.println("TEST CLIP ON ZERATOR CHANNEL\n");
+            final Set<Stream> zeratorFetch = api.getStreamsByUserNames(Set.of("zerator"));
+            for (final Stream stream : zeratorFetch) {
+                System.out.println(api.createClip(stream.getUserId()));
+            }
             /*Thread.sleep(1000);
             System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));*/
         } catch (IOException | InterruptedException e) {

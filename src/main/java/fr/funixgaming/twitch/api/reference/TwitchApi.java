@@ -280,7 +280,7 @@ public class TwitchApi {
                         clip.get("edit_url").getAsString()
                 );
             } else {
-                throw new IOException("An error occurred while creating a clip on channel " + channelId + ". Error code : " + response.getResponseCode());
+                throw new IOException("An error occurred while creating a clip on channel " + channelId + ".\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
