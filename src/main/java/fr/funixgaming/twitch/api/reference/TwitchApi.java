@@ -10,10 +10,7 @@ import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
 import fr.funixgaming.twitch.api.reference.entities.responses.channel.*;
 import fr.funixgaming.twitch.api.reference.entities.responses.TwitchImage;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Clip;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.ClipCreation;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.Game;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.User;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.*;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -357,6 +354,90 @@ public class TwitchApi {
                 return clips;
             } else {
                 throw new IOException("An error occurred while fetching clips on channel " + channelId + ". Error code : " + response.getResponseCode());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public Follow getUserLastFollowerAndFollowCount(final String userId) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_USERS + "/follows",
+                    "to_id=" + userId + "&first=1",
+                    null
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject getResponse = response.getBody().getAsJsonObject();
+                final JsonArray followElem = getResponse.get("data").getAsJsonArray();
+
+                if (followElem.size() < 1) {
+                    return null;
+                } else {
+                    final JsonObject follow = followElem.get(0).getAsJsonObject();
+                    return new Follow(
+                            follow.get("from_id").getAsString(),
+                            follow.get("from_login").getAsString(),
+                            follow.get("from_name").getAsString(),
+                            follow.get("to_id").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            Date.from(Instant.parse(follow.get("followed_at").getAsString())),
+                            getResponse.get("total").getAsInt()
+                    );
+                }
+            } else {
+                throw new IOException("An error occurred while fetching user count follow.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_USERS + "/follows",
+                    "to_id=" + streamerId + "&from_id=" + userToCheckId,
+                    null
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                System.out.println(response.getBody());
+                final JsonObject getResponse = response.getBody().getAsJsonObject();
+                final JsonArray followElem = getResponse.get("data").getAsJsonArray();
+
+                if (followElem.size() < 1) {
+                    return null;
+                } else {
+                    final JsonObject follow = followElem.get(0).getAsJsonObject();
+                    return new Follow(
+                            follow.get("from_id").getAsString(),
+                            follow.get("from_login").getAsString(),
+                            follow.get("from_name").getAsString(),
+                            follow.get("to_id").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            Date.from(Instant.parse(follow.get("followed_at").getAsString())),
+                            getResponse.get("total").getAsInt()
+                    );
+                }
+
+            } else {
+                throw new IOException("An error occurred while fetching user follow.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
