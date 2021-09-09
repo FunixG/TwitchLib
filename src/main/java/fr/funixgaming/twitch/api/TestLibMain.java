@@ -8,6 +8,7 @@ import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.responses.channel.Stream;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -198,12 +199,29 @@ class TestLibMain {
             System.out.println("GET USER FUNIXGAMING\n" + api.getUsersByUserName(Set.of("funixgaming")));
             Thread.sleep(1000);
             System.out.println("GET MULTIPLE USERS\n" + api.getUsersByUserName(Set.of("drakkades", "luxlechien", "jestair", "zerator", "funixbot")));
+
             Thread.sleep(1000);
+            final Set<User> fetch = api.getUsersByUserName(Set.of("funixgaming", "zerator"));
+            User zerator = null;
+            User funixgaming = null;
+
+            for (final User user : fetch) {
+                if (user.getName().equalsIgnoreCase("funixgaming")) {
+                    funixgaming = user;
+                } else if (user.getName().equalsIgnoreCase("zerator")) {
+                    zerator = user;
+                }
+            }
+            System.out.println("IS FUNIXGAMING FOLLOWING ZERATOR ????\n" + api.isUserFollowing(funixgaming.getId(), zerator.getId()));
+            Thread.sleep(1000);
+            System.out.println("FUNIXGAMING FOLLOW COUNT\n" + api.getUserLastFollowerAndFollowCount(funixgaming.getId()));
+
+            /*Thread.sleep(1000);
             System.out.println("TEST CLIP ON ZERATOR CHANNEL\n");
             final Set<Stream> zeratorFetch = api.getStreamsByUserNames(Set.of("zerator"));
             for (final Stream stream : zeratorFetch) {
                 System.out.println(api.createClip(stream.getUserId()));
-            }
+            }*/
             /*Thread.sleep(1000);
             System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));*/
         } catch (IOException | InterruptedException e) {
