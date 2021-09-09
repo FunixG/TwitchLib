@@ -20,6 +20,8 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,6 +36,7 @@ public class TwitchApi {
     private final static String PATH_CHANNEL_CHAT = TwitchResources.TWITCH_API_PATH + "/chat/emotes";
     private final static String PATH_CHANNEL_CLIP = TwitchResources.TWITCH_API_PATH + "/clips";
     private final static String PATH_CHANNEL_GAMES = TwitchResources.TWITCH_API_PATH + "/games";
+    private final static String PATH_CHANNEL_STREAMS = TwitchResources.TWITCH_API_PATH + "/streams";
 
     private final TwitchAuth twitchAuth;
 
@@ -364,6 +367,64 @@ public class TwitchApi {
 
     public Game getGameByName(final String gameName) throws IOException {
         return getGame(gameName, false);
+    }
+
+    public Set<Stream> getStreamsByUserNames(final Set<String> userNames) throws IOException {
+        return getStreamInfo(userNames, false);
+    }
+
+    public Set<Stream> getStreamsById(final Set<String> idList) throws IOException {
+        return getStreamInfo(idList, true);
+    }
+
+    private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws IOException {
+        try {
+            if (userList.isEmpty()) {
+                throw new IOException("Streamer list empty");
+            }
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            userList.forEach(user -> user = user.toLowerCase());
+            final String searchQuery = (isID ? "user_id" : "user_login") + '=';
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_STREAMS,
+                    searchQuery + String.join("&" + searchQuery, userList),
+                    null
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Stream> streams = new HashSet<>();
+                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement elem : data) {
+                    final JsonObject stream = elem.getAsJsonObject();
+                    streams.add(new Stream(
+                            stream.get("id").getAsString(),
+                            stream.get("user_id").getAsString(),
+                            stream.get("user_login").getAsString(),
+                            stream.get("user_name").getAsString(),
+                            stream.get("game_id").getAsString(),
+                            stream.get("game_name").getAsString(),
+                            stream.get("title").getAsString(),
+                            stream.get("viewer_count").getAsInt(),
+                            Date.from(Instant.parse(stream.get("started_at").getAsString())),
+                            stream.get("language").getAsString(),
+                            stream.get("thumbnail_url").getAsString(),
+                            stream.get("is_mature").getAsBoolean()
+                    ));
+                }
+                return streams;
+            } else {
+                throw new IOException("An error occurred while fetching streams.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
     }
 
     private Game getGame(final String data, boolean isID) throws IOException {
