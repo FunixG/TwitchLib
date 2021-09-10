@@ -214,7 +214,11 @@ class TestLibMain {
             }
             System.out.println("IS FUNIXGAMING FOLLOWING ZERATOR ????\n" + api.isUserFollowing(funixgaming.getId(), zerator.getId()));
             Thread.sleep(1000);
+            System.out.println("IS ZERATOR FOLLOWING FUNIXGAMING ????\n" + api.isUserFollowing(zerator.getId(), funixgaming.getId()));
+            Thread.sleep(1000);
             System.out.println("FUNIXGAMING FOLLOW COUNT\n" + api.getUserLastFollowerAndFollowCount(funixgaming.getId()));
+            Thread.sleep(1000);
+            System.out.println("GET VOD STREAMS\n" + api.getStreamVodList(funixgaming.getId()));
 
             /*Thread.sleep(1000);
             System.out.println("TEST CLIP ON ZERATOR CHANNEL\n");
