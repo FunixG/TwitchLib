@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.funixgaming.twitch.api.TwitchResources;
+import fr.funixgaming.twitch.api.auth.AuthEntity;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
@@ -36,8 +37,9 @@ public class TwitchApi {
     private final static String PATH_CHANNEL_GAMES = TwitchResources.TWITCH_API_PATH + "/games";
     private final static String PATH_CHANNEL_STREAMS = TwitchResources.TWITCH_API_PATH + "/streams";
     private final static String PATH_CHANNEL_USERS = TwitchResources.TWITCH_API_PATH + "/users";
+    private final static String PATH_CHANNEL_VIDEOS = TwitchResources.TWITCH_API_PATH + "/videos";
 
-    private final TwitchAuth twitchAuth;
+    private final AuthEntity twitchAuth;
 
     public Channel getChannelInformation(@NonNull final String channelId) throws IOException {
         try {
@@ -354,6 +356,52 @@ public class TwitchApi {
                 return clips;
             } else {
                 throw new IOException("An error occurred while fetching clips on channel " + channelId + ". Error code : " + response.getResponseCode());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public Set<Vod> getStreamVodList(@NonNull final String streamerId) throws IOException {
+        try {
+            if (!twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_VIDEOS,
+                    "user_id=" + streamerId + "&first=100",
+                    null
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Vod> list = new HashSet<>();
+                final JsonArray get = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement element : get) {
+                    final JsonObject vod = element.getAsJsonObject();
+                    list.add(new Vod(
+                            vod.get("id").getAsString(),
+                            vod.get("stream_id").getAsString(),
+                            vod.get("user_id").getAsString(),
+                            vod.get("user_login").getAsString(),
+                            vod.get("user_name").getAsString(),
+                            vod.get("title").getAsString(),
+                            vod.get("description").getAsString(),
+                            Date.from(Instant.parse(vod.get("created_at").getAsString())),
+                            Date.from(Instant.parse(vod.get("published_at").getAsString())),
+                            vod.get("url").getAsString(),
+                            vod.get("thumbnail_url").getAsString(),
+                            vod.get("view_count").getAsInt(),
+                            vod.get("language").getAsString(),
+                            vod.get("duration").getAsString()
+                    ));
+                }
+                return list;
+            } else {
+                throw new IOException("An error occurred while fetching vods on channel " + streamerId + ".\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);

@@ -15,15 +15,14 @@ import java.util.Set;
 import static fr.funixgaming.twitch.api.TwitchResources.DOMAIN_TWITCH_AUTH_API;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.*;
 
+/**
+ * Class used to call twitch api services, somes endpoint will ask you to generate a token from a login page so this class will not be usable
+ */
 @Getter
-public class TwitchAuth {
+public class TwitchAuth extends AuthEntity {
 
     private final static String PATH_OAUTH_TOKEN = "/oauth2/token";
 
-    private final String clientId;
-    private final String clientSecret;
-    private final Set<String> scopes;
-    private String accessToken;
     private Date expirationDate;
 
     /**
@@ -35,9 +34,9 @@ public class TwitchAuth {
      * @throws IOException when the twitch server has a problem
      */
     public TwitchAuth(final String clientId, final String clientSecret, final Set<String> scopes) throws IOException {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.scopes = scopes;
+        super.setClientId(clientId);
+        super.setClientSecret(clientSecret);
+        super.setScopes(scopes);
 
         refresh();
     }
@@ -58,10 +57,10 @@ public class TwitchAuth {
     public void refresh() throws IOException {
         try {
             final URI url = new URI("https", DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN,
-                    "client_id=" + clientId +
-                            "&client_secret=" + clientSecret +
+                    "client_id=" + super.getClientId() +
+                            "&client_secret=" + super.getClientSecret() +
                             "&grant_type=client_credentials" +
-                            "&scope=" + String.join(" ", scopes),
+                            "&scope=" + String.join(" ", super.getScopes()),
                     null
             );
 
@@ -69,7 +68,7 @@ public class TwitchAuth {
             if (response.getResponseCode() == 200) {
                 final JsonObject body = response.getBody().getAsJsonObject();
 
-                this.accessToken = body.get("access_token").getAsString();
+                super.setAccessToken(body.get("access_token").getAsString());
                 this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
             } else {
                 throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
