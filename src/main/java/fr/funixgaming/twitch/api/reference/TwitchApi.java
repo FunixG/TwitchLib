@@ -4,8 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.funixgaming.twitch.api.TwitchResources;
-import fr.funixgaming.twitch.api.auth.AuthEntity;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
+import fr.funixgaming.twitch.api.auth.UserAppRevokedException;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
@@ -38,12 +38,13 @@ public class TwitchApi {
     private final static String PATH_CHANNEL_STREAMS = TwitchResources.TWITCH_API_PATH + "/streams";
     private final static String PATH_CHANNEL_USERS = TwitchResources.TWITCH_API_PATH + "/users";
     private final static String PATH_CHANNEL_VIDEOS = TwitchResources.TWITCH_API_PATH + "/videos";
+    private final static String PATH_CHANNEL_SUBS = TwitchResources.TWITCH_API_PATH + "/subscriptions";
 
-    private final AuthEntity twitchAuth;
+    private final TwitchAuth twitchAuth;
 
-    public Channel getChannelInformation(@NonNull final String channelId) throws IOException {
+    public Channel getChannelInformation(@NonNull final String channelId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -76,12 +77,9 @@ public class TwitchApi {
         }
     }
 
-    /**
-     * TODO Not working, need to fetch token from a login twitch page
-     */
-    public void updateChannelInformation(@NonNull final String channelId, @NonNull final UpdateChannel updateChannel) throws IOException {
+    public void updateChannelInformation(@NonNull final String channelId, @NonNull final UpdateChannel updateChannel) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -116,12 +114,9 @@ public class TwitchApi {
         }
     }
 
-    /**
-     * TODO Not working, need to fetch token from a login twitch page
-     */
-    public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws IOException {
+    public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -202,9 +197,9 @@ public class TwitchApi {
         }
     }
 
-    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws IOException {
+    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -257,9 +252,9 @@ public class TwitchApi {
         }
     }
 
-    public ClipCreation createClip(@NonNull final String channelId) throws IOException {
+    public ClipCreation createClip(@NonNull final String channelId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -286,9 +281,9 @@ public class TwitchApi {
         }
     }
 
-    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws IOException {
+    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
             final Set<String> searchQuery = new HashSet<>();
@@ -362,9 +357,9 @@ public class TwitchApi {
         }
     }
 
-    public Set<Vod> getStreamVodList(@NonNull final String streamerId) throws IOException {
+    public Set<Vod> getStreamVodList(@NonNull final String streamerId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -408,9 +403,64 @@ public class TwitchApi {
         }
     }
 
-    public Follow getUserLastFollowerAndFollowCount(final String userId) throws IOException {
+    public LastSub getStreamerLastSubAndCount(final String streamerId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = new URI(
+                    "https",
+                    TwitchResources.DOMAIN_TWITCH_API,
+                    PATH_CHANNEL_SUBS,
+                    "broadcaster_id=" + streamerId + "&first=1",
+                    null
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                if (data.size() > 0) {
+                    final JsonObject lastSub = data.get(0).getAsJsonObject();
+                    final String tierSubStr = lastSub.get("tier").getAsString();
+                    NoticeEventParser.SubTier subTier = NoticeEventParser.SubTier.TIER_1;
+
+                    for (final NoticeEventParser.SubTier tier : NoticeEventParser.SubTier.values()) {
+                        if (tier.getTwitchTag().equals(tierSubStr)) {
+                            subTier = tier;
+                            break;
+                        }
+                    }
+
+                    return new LastSub(
+                            lastSub.get("broadcaster_id").getAsString(),
+                            lastSub.get("broadcaster_login").getAsString(),
+                            lastSub.get("broadcaster_name").getAsString(),
+                            lastSub.get("gifter_id").getAsString(),
+                            lastSub.get("gifter_login").getAsString(),
+                            lastSub.get("gifter_name").getAsString(),
+                            lastSub.get("is_gift").getAsBoolean(),
+                            subTier,
+                            lastSub.get("user_id").getAsString(),
+                            lastSub.get("user_name").getAsString(),
+                            lastSub.get("user_login").getAsString(),
+                            lastSub.get("total").getAsInt()
+                    );
+                } else {
+                    return null;
+                }
+            } else {
+                throw new IOException("An error occurred while fetching user count subs.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public Follow getUserLastFollowerAndFollowCount(final String userId) throws IOException, UserAppRevokedException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -449,9 +499,9 @@ public class TwitchApi {
         }
     }
 
-    public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws IOException {
+    public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -492,36 +542,36 @@ public class TwitchApi {
         }
     }
 
-    public Game getGameById(final String gameId) throws IOException {
+    public Game getGameById(final String gameId) throws IOException, UserAppRevokedException {
         return getGame(gameId, true);
     }
 
-    public Game getGameByName(final String gameName) throws IOException {
+    public Game getGameByName(final String gameName) throws IOException, UserAppRevokedException {
         return getGame(gameName, false);
     }
 
-    public Set<Stream> getStreamsByUserNames(final Set<String> userNames) throws IOException {
+    public Set<Stream> getStreamsByUserNames(final Set<String> userNames) throws IOException, UserAppRevokedException {
         return getStreamInfo(userNames, false);
     }
 
-    public Set<Stream> getStreamsById(final Set<String> idList) throws IOException {
+    public Set<Stream> getStreamsById(final Set<String> idList) throws IOException, UserAppRevokedException {
         return getStreamInfo(idList, true);
     }
 
-    public Set<User> getUsersByUserName(final Set<String> userNames) throws IOException {
+    public Set<User> getUsersByUserName(final Set<String> userNames) throws IOException, UserAppRevokedException {
         return getUsers(userNames, false);
     }
 
-    public Set<User> getUsersById(final Set<String> idList) throws IOException {
+    public Set<User> getUsersById(final Set<String> idList) throws IOException, UserAppRevokedException {
         return getUsers(idList, true);
     }
 
-    private Set<User> getUsers(final Set<String> userList, boolean isID) throws IOException {
+    private Set<User> getUsers(final Set<String> userList, boolean isID) throws IOException, UserAppRevokedException {
         try {
             if (userList.isEmpty()) {
                 throw new IOException("Users list empty");
             }
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -573,12 +623,12 @@ public class TwitchApi {
         }
     }
 
-    private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws IOException {
+    private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws IOException, UserAppRevokedException {
         try {
             if (userList.isEmpty()) {
                 throw new IOException("Streamer list empty");
             }
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
@@ -623,9 +673,9 @@ public class TwitchApi {
         }
     }
 
-    private Game getGame(final String data, boolean isID) throws IOException {
+    private Game getGame(final String data, boolean isID) throws IOException, UserAppRevokedException {
         try {
-            if (!twitchAuth.isValid()) {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
             }
 
