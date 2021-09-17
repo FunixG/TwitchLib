@@ -2,7 +2,6 @@ package fr.funixgaming.twitch.api.tools;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import fr.funixgaming.twitch.api.auth.AuthEntity;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +30,7 @@ public class HttpCalls {
     public static HttpJSONResponse performJSONRequest(final URI uri,
                                                       final HttpType httpType,
                                                       String body,
-                                                      final AuthEntity twitchAuth) throws IOException {
+                                                      final TwitchAuth twitchAuth) throws IOException {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 

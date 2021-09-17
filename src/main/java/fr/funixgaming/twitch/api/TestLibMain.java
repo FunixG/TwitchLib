@@ -2,12 +2,12 @@ package fr.funixgaming.twitch.api;
 
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.auth.TwitchScopes;
+import fr.funixgaming.twitch.api.auth.UserAppRevokedException;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.Stream;
 import fr.funixgaming.twitch.api.reference.entities.responses.twitch.User;
 import lombok.Getter;
 import lombok.Setter;
@@ -220,6 +220,9 @@ class TestLibMain {
             Thread.sleep(1000);
             System.out.println("GET VOD STREAMS\n" + api.getStreamVodList(funixgaming.getId()));
 
+            Thread.sleep(1000);
+            System.out.println("GET LAST FUNIXGAMING SUB\n" + api.getStreamerLastSubAndCount(funixgaming.getId()));
+
             /*Thread.sleep(1000);
             System.out.println("TEST CLIP ON ZERATOR CHANNEL\n");
             final Set<Stream> zeratorFetch = api.getStreamsByUserNames(Set.of("zerator"));
@@ -228,7 +231,7 @@ class TestLibMain {
             }*/
             /*Thread.sleep(1000);
             System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));*/
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | UserAppRevokedException e) {
             e.printStackTrace();
         }
     }
