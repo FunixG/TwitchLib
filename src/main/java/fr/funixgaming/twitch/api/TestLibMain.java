@@ -116,55 +116,6 @@ class TestLibMain {
         botThread.start();
     }
 
-    private void getAuth(boolean testPrintAuth) {
-        try {
-            final TwitchAuth twitchAuth = new TwitchAuth(this.apiClientId, this.apiClientSecret, Set.of(
-                    TwitchScopes.CHANNEL_MANAGE_SCHEDULE,
-                    TwitchScopes.ANALYTICS_READ_EXTENSIONS,
-                    TwitchScopes.ANALYTICS_READ_GAMES,
-                    TwitchScopes.BITS_READ,
-                    TwitchScopes.CHANNEL_EDIT_COMMERCIAL,
-                    TwitchScopes.CHANNEL_MANAGE_BROADCAST,
-                    TwitchScopes.CHANNEL_MANAGE_EXTENSIONS,
-                    TwitchScopes.CHANNEL_MANAGE_POLLS,
-                    TwitchScopes.CHANNEL_MANAGE_PREDICTIONS,
-                    TwitchScopes.CHANNEL_MANAGE_CHAT_POINTS_REWARDS,
-                    TwitchScopes.CHANNEL_MANAGE_VIDEOS,
-                    TwitchScopes.CHANNEL_READ_EDITORS,
-                    TwitchScopes.CHANNEL_READ_HYPE_TRAIN,
-                    TwitchScopes.CHANNEL_READ_POLLS,
-                    TwitchScopes.CHANNEL_READ_PREDICTIONS,
-                    TwitchScopes.CHANNEL_READ_CHAT_POINTS_REWARDS,
-                    TwitchScopes.CHANNEL_READ_SUBS,
-                    TwitchScopes.EDIT_CLIPS,
-                    TwitchScopes.MODERATION_READ,
-                    TwitchScopes.MODERATION_MANAGE_AUTOMOD,
-                    TwitchScopes.USER_EDIT,
-                    TwitchScopes.USER_EDIT_FOLLOWS,
-                    TwitchScopes.USER_MANAGE_BLOCKED_USER,
-                    TwitchScopes.USER_READ_BLOCKED_USERS,
-                    TwitchScopes.USER_READ_BROADCAST,
-                    TwitchScopes.USER_READ_EMAIL,
-                    TwitchScopes.USER_READ_FOLLOWS,
-                    TwitchScopes.USER_READ_SUBS,
-                    TwitchScopes.WHISPER
-            ));
-            this.twitchAuth = twitchAuth;
-
-            if (testPrintAuth) {
-                System.out.println(twitchAuth.toJson(true));
-                System.out.println("isValid: " + twitchAuth.isValid());
-
-                System.out.println("TEST DESERIALIZE");
-                final TwitchAuth des = TwitchAuth.fromJson(twitchAuth.toJson(true));
-                System.out.println(des.toJson(true));
-                System.out.println("isValid: " + des.isValid());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void testChannelApi(final String channelId) {
         try {
             final TwitchApi api = new TwitchApi(this.twitchAuth);
@@ -246,7 +197,6 @@ class TestLibMain {
         final String channelIdToTest = args[4];
 
         main.startBot();
-        main.getAuth(false);
         main.testChannelApi(channelIdToTest);
     }
 
