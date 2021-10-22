@@ -7,7 +7,6 @@ import lombok.Getter;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Date;
 
@@ -65,7 +64,7 @@ public class TwitchAuth {
     /**
      * Method used to check if your accessToken is not expired
      */
-    public boolean isValid() throws IOException {
+    public boolean isValid() {
         final Instant now = Instant.now();
         final Instant expiration = this.expirationDate.toInstant();
 
@@ -79,21 +78,17 @@ public class TwitchAuth {
      * @throws IOException when an error
      */
     public boolean isUsable() throws IOException, UserAppRevokedException {
-        try {
-            final URI uri = new URI("https", DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN_VALIDATE);
-            final HttpJSONResponse response = performJSONRequest(uri, HttpType.GET, null, this);
+        final URI uri = URI.create("https://" + DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN_VALIDATE);
+        final HttpJSONResponse response = performJSONRequest(uri, HttpType.GET, null, this);
 
-            if (response.getResponseCode().equals(200)) {
-                final JsonObject data = response.getBody().getAsJsonObject();
-                this.userName = data.get("login").getAsString();
-                this.userId = data.get("user_id").getAsString();
+        if (response.getResponseCode().equals(200)) {
+            final JsonObject data = response.getBody().getAsJsonObject();
+            this.userName = data.get("login").getAsString();
+            this.userId = data.get("user_id").getAsString();
 
-                return true;
-            } else {
-                throw new UserAppRevokedException();
-            }
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
+            return true;
+        } else {
+            throw new UserAppRevokedException();
         }
     }
 
@@ -101,27 +96,22 @@ public class TwitchAuth {
      * Method used to generate a new accessToken
      */
     public void refresh() throws IOException {
-        try {
-            final URI url = new URI("https", DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN,
-                    "client_id=" + clientId +
-                            "&client_secret=" + clientSecret +
-                            "&refresh_token=" + refreshToken +
-                            "&grant_type=refresh_token",
-                    null
-            );
+        final URI url = URI.create("https://" + DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
+                "client_id=" + clientId +
+                "&client_secret=" + clientSecret +
+                "&refresh_token=" + refreshToken +
+                "&grant_type=refresh_token"
+        );
 
-            final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
-            if (response.getResponseCode() == 200) {
-                final JsonObject body = response.getBody().getAsJsonObject();
+        final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
+        if (response.getResponseCode() == 200) {
+            final JsonObject body = response.getBody().getAsJsonObject();
 
-                this.accessToken = body.get("access_token").getAsString();
-                this.refreshToken = body.get("refresh_token").getAsString();
-                this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
-            } else {
-                throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
-            }
-        } catch (URISyntaxException err) {
-            throw new IOException(err);
+            this.accessToken = body.get("access_token").getAsString();
+            this.refreshToken = body.get("refresh_token").getAsString();
+            this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
+        } else {
+            throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
         }
     }
 
