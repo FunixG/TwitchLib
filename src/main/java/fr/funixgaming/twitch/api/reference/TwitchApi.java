@@ -51,7 +51,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL +
-                        "broadcaster_id=" + channelId
+                        "?broadcaster_id=" + channelId
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -81,7 +81,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL +
-                        "broadcaster_id=" + channelId
+                        "?broadcaster_id=" + channelId
         );
 
         final JsonObject body = new JsonObject();
@@ -113,7 +113,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_POINTS +
-                        "broadcaster_id=" + channelId
+                        "?broadcaster_id=" + channelId
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -191,7 +191,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_CHAT +
-                        "broadcaster_id=" + channelId
+                        "?broadcaster_id=" + channelId
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -241,7 +241,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_CLIP +
-                        "broadcaster_id=" + channelId
+                        "?broadcaster_id=" + channelId
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.POST, null, twitchAuth);
@@ -284,7 +284,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_CLIP +
-                        "broadcaster_id=" + channelId + (searchQuery.size() > 0 ? "&" + String.join("&", searchQuery) : "")
+                        "?broadcaster_id=" + channelId + (searchQuery.size() > 0 ? "&" + String.join("&", searchQuery) : "")
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -336,7 +336,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_VIDEOS +
-                        "user_id=" + streamerId + "&first=100"
+                        "?user_id=" + streamerId + "&first=100"
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -378,7 +378,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_SUBS +
-                        "broadcaster_id=" + streamerId + "&first=1"
+                        "?broadcaster_id=" + streamerId + "&first=1"
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -428,7 +428,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_USERS + "/follows" +
-                        "to_id=" + userId + "&first=1"
+                        "?to_id=" + userId + "&first=1"
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -465,7 +465,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_USERS + "/follows" +
-                        "to_id=" + streamerId + "&from_id=" + userToCheckId
+                        "?to_id=" + streamerId + "&from_id=" + userToCheckId
         );
 
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
@@ -533,7 +533,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_USERS +
-                        searchQuery + String.join("&" + searchQuery, userList)
+                        "?" + searchQuery + String.join("&" + searchQuery, userList)
         );
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
         if (response.getResponseCode() == 200) {
@@ -586,7 +586,7 @@ public class TwitchApi {
                 "https://" +
                         TwitchResources.DOMAIN_TWITCH_API +
                         PATH_CHANNEL_STREAMS +
-                        searchQuery + String.join("&" + searchQuery, userList)
+                        "?" + searchQuery + String.join("&" + searchQuery, userList)
         );
         final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
         if (response.getResponseCode() == 200) {
@@ -626,7 +626,7 @@ public class TwitchApi {
                     "https://" +
                             TwitchResources.DOMAIN_TWITCH_API +
                             PATH_CHANNEL_GAMES +
-                            (isID ? "id" : "name") + "=" + data
+                            "?" + (isID ? "id" : "name") + "=" + data
             );
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);

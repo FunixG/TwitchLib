@@ -97,7 +97,7 @@ public class TwitchAuth {
      */
     public void refresh() throws IOException {
         final URI url = URI.create("https://" + DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
-                "client_id=" + clientId +
+                "?client_id=" + clientId +
                 "&client_secret=" + clientSecret +
                 "&refresh_token=" + refreshToken +
                 "&grant_type=refresh_token"
