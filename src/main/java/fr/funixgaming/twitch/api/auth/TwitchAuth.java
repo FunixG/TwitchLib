@@ -88,7 +88,7 @@ public class TwitchAuth {
 
             return true;
         } else {
-            throw new UserAppRevokedException();
+            throw new UserAppRevokedException(response);
         }
     }
 
