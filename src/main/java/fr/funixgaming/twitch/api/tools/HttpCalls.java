@@ -53,6 +53,22 @@ public class HttpCalls {
         return sendHttpClientRequest(requestBuilder);
     }
 
+    public static void performEventSubUnRegister(@NonNull final String clientId,
+                                                 @NonNull final String bearerToken,
+                                                 @NonNull final String eventIdToRemove) throws IOException {
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+
+        requestBuilder.uri(URI.create(EVENT_SUB_ENDPOINT + "?id=" + eventIdToRemove));
+        requestBuilder.DELETE();
+        requestBuilder.setHeader("Client-Id", clientId);
+        requestBuilder.setHeader("Authorization", "Bearer " + bearerToken);
+
+        HttpJSONResponse response = sendHttpClientRequest(requestBuilder);
+        if (response.getResponseCode() != 204) {
+            throw new IOException("Could not remove subscription: " + eventIdToRemove + "\nCode: " + response.getResponseCode() + "\nBody: " + response.getBody());
+        }
+    }
+
     public static HttpJSONResponse performJSONRequest(final URI uri,
                                                       final HttpType httpType,
                                                       String body,
