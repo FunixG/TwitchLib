@@ -56,10 +56,10 @@ public class TwitchAuth {
         this.refreshToken = refreshToken;
         this.expirationDate = expirationDate;
 
-        isUsable();
         if (!isValid()) {
             refresh();
         }
+        isUsable();
     }
 
     /**
