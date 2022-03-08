@@ -29,16 +29,19 @@ import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpJSONResponse;
 
 @AllArgsConstructor
 public class TwitchApi {
+    public final static String DOMAIN_TWITCH_AUTH_API = "id.twitch.tv";
+    public final static String DOMAIN_TWITCH_API = "api.twitch.tv";
+    private final static String TWITCH_API_PATH = "/helix";
 
-    private final static String PATH_CHANNEL = TwitchResources.TWITCH_API_PATH + "/channels";
-    private final static String PATH_CHANNEL_POINTS = TwitchResources.TWITCH_API_PATH + "/channel_points/custom_rewards";
-    private final static String PATH_CHANNEL_CHAT = TwitchResources.TWITCH_API_PATH + "/chat/emotes";
-    private final static String PATH_CHANNEL_CLIP = TwitchResources.TWITCH_API_PATH + "/clips";
-    private final static String PATH_CHANNEL_GAMES = TwitchResources.TWITCH_API_PATH + "/games";
-    private final static String PATH_CHANNEL_STREAMS = TwitchResources.TWITCH_API_PATH + "/streams";
-    private final static String PATH_CHANNEL_USERS = TwitchResources.TWITCH_API_PATH + "/users";
-    private final static String PATH_CHANNEL_VIDEOS = TwitchResources.TWITCH_API_PATH + "/videos";
-    private final static String PATH_CHANNEL_SUBS = TwitchResources.TWITCH_API_PATH + "/subscriptions";
+    private final static String PATH_CHANNEL = TWITCH_API_PATH + "/channels";
+    private final static String PATH_CHANNEL_POINTS = TWITCH_API_PATH + "/channel_points/custom_rewards";
+    private final static String PATH_CHANNEL_CHAT = TWITCH_API_PATH + "/chat/emotes";
+    private final static String PATH_CHANNEL_CLIP = TWITCH_API_PATH + "/clips";
+    private final static String PATH_CHANNEL_GAMES = TWITCH_API_PATH + "/games";
+    private final static String PATH_CHANNEL_STREAMS = TWITCH_API_PATH + "/streams";
+    private final static String PATH_CHANNEL_USERS = TWITCH_API_PATH + "/users";
+    private final static String PATH_CHANNEL_VIDEOS = TWITCH_API_PATH + "/videos";
+    private final static String PATH_CHANNEL_SUBS = TWITCH_API_PATH + "/subscriptions";
 
     private final TwitchAuth twitchAuth;
 

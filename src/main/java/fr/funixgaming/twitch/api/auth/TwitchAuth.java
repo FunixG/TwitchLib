@@ -3,6 +3,7 @@ package fr.funixgaming.twitch.api.auth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import fr.funixgaming.twitch.api.reference.TwitchApi;
 import lombok.Getter;
 
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Date;
 
-import static fr.funixgaming.twitch.api.TwitchResources.DOMAIN_TWITCH_AUTH_API;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.*;
 
 /**
@@ -79,8 +79,9 @@ public class TwitchAuth {
      * @throws IOException when an error
      */
     public boolean isUsable() throws IOException, UserAppRevokedException {
-        final URI uri = URI.create("https://" + DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN_VALIDATE);
-        final HttpJSONResponse response = performJSONRequest(uri, HttpType.GET, null, this);
+        try {
+            final URI uri = new URI("https", TwitchApi.DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN_VALIDATE);
+            final HttpJSONResponse response = performJSONRequest(uri, HttpType.GET, null, this);
 
         if (response.getResponseCode().equals(200)) {
             final JsonObject data = response.getBody().getAsJsonObject();
@@ -97,12 +98,14 @@ public class TwitchAuth {
      * Method used to generate a new accessToken
      */
     public void refresh() throws IOException {
-        final URI url = URI.create("https://" + DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
-                "?client_id=" + clientId +
-                "&client_secret=" + clientSecret +
-                "&refresh_token=" + refreshToken +
-                "&grant_type=refresh_token"
-        );
+        try {
+            final URI url = new URI("https", TwitchApi.DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN,
+                    "client_id=" + clientId +
+                            "&client_secret=" + clientSecret +
+                            "&refresh_token=" + refreshToken +
+                            "&grant_type=refresh_token",
+                    null
+            );
 
         final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
         if (response.getResponseCode() == 200) {
