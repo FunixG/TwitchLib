@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import fr.funixgaming.twitch.api.TwitchResources;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
-import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
@@ -16,6 +15,7 @@ import fr.funixgaming.twitch.api.reference.entities.responses.twitch.*;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -109,7 +109,7 @@ public class TwitchApi {
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.PATCH, body.toString(), twitchAuth);
             if (response.getResponseCode() != 204) {
-                throw new IOException("An error occurred while updating channelId " + channelId + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+                throw new IOException("An error occurred while updating channelId " + channelId + ". Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while updating channel.", e);
@@ -245,7 +245,7 @@ public class TwitchApi {
                 }
                 return emotes;
             } else {
-                throw new IOException("Http Error code : " + response.getResponseCode() + "\nBody: " + response.getBody());
+                throw new IOException("Http Error code : " + response.getResponseCode() + " Body: " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while fetching channel emotes.", e);
@@ -273,7 +273,7 @@ public class TwitchApi {
                         clip.get("edit_url").getAsString()
                 );
             } else {
-                throw new IOException("\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+                throw new IOException("Error code : " + response.getResponseCode() + " Body : " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while creating a clip on channel" + channelId + ".", e);
@@ -394,13 +394,14 @@ public class TwitchApi {
                 }
                 return list;
             } else {
-                throw new IOException("Error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+                throw new IOException("Error code : " + response.getResponseCode() + " Body : " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while fetching vods on channel " + streamerId + ".", e);
         }
     }
 
+    @Nullable
     public LastSub getStreamerLastSubAndCount(final String streamerId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
@@ -409,7 +410,7 @@ public class TwitchApi {
 
             final URI url = URI.create(
                     "https://" +
-                            TwitchResources.DOMAIN_TWITCH_API +
+                            DOMAIN_TWITCH_API +
                             PATH_CHANNEL_SUBS +
                             "?broadcaster_id=" + streamerId + "&first=1"
             );
@@ -448,211 +449,15 @@ public class TwitchApi {
                     return null;
                 }
             } else {
-                throw new IOException("Http error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while fetching user count subs.", e);
         }
     }
 
-    public Follow getUserLastFollowerAndFollowCount(final String userId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_USERS + "/follows" +
-                        "?to_id=" + userId + "&first=1"
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final JsonObject getResponse = response.getBody().getAsJsonObject();
-            final JsonArray followElem = getResponse.get("data").getAsJsonArray();
-
-            if (followElem.size() < 1) {
-                return null;
-            } else {
-                final JsonObject follow = followElem.get(0).getAsJsonObject();
-                return new Follow(
-                        follow.get("from_id").getAsString(),
-                        follow.get("from_login").getAsString(),
-                        follow.get("from_name").getAsString(),
-                        follow.get("to_id").getAsString(),
-                        follow.get("to_login").getAsString(),
-                        follow.get("to_login").getAsString(),
-                        Date.from(Instant.parse(follow.get("followed_at").getAsString())),
-                        getResponse.get("total").getAsInt()
-                );
-            }
-        } else {
-            throw new IOException("An error occurred while fetching user count follow.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_USERS + "/follows" +
-                        "?to_id=" + streamerId + "&from_id=" + userToCheckId
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            System.out.println(response.getBody());
-            final JsonObject getResponse = response.getBody().getAsJsonObject();
-            final JsonArray followElem = getResponse.get("data").getAsJsonArray();
-
-            if (followElem.size() < 1) {
-                return null;
-            } else {
-                final JsonObject follow = followElem.get(0).getAsJsonObject();
-                return new Follow(
-                        follow.get("from_id").getAsString(),
-                        follow.get("from_login").getAsString(),
-                        follow.get("from_name").getAsString(),
-                        follow.get("to_id").getAsString(),
-                        follow.get("to_login").getAsString(),
-                        follow.get("to_login").getAsString(),
-                        Date.from(Instant.parse(follow.get("followed_at").getAsString())),
-                        getResponse.get("total").getAsInt()
-                );
-            }
-
-        } else {
-            throw new IOException("An error occurred while fetching user follow.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    public Game getGameById(final String gameId) throws IOException, UserAppRevokedException {
-        return getGame(gameId, true);
-    }
-
-    public Game getGameByName(final String gameName) throws IOException, UserAppRevokedException {
-        return getGame(gameName, false);
-    }
-
-    public Set<Stream> getStreamsByUserNames(final Set<String> userNames) throws IOException, UserAppRevokedException {
-        return getStreamInfo(userNames, false);
-    }
-
-    public Set<Stream> getStreamsById(final Set<String> idList) throws IOException, UserAppRevokedException {
-        return getStreamInfo(idList, true);
-    }
-
-    public Set<User> getUsersByUserName(final Set<String> userNames) throws IOException, UserAppRevokedException {
-        return getUsers(userNames, false);
-    }
-
-    public Set<User> getUsersById(final Set<String> idList) throws IOException, UserAppRevokedException {
-        return getUsers(idList, true);
-    }
-
-    private Set<User> getUsers(final Set<String> userList, boolean isID) throws IOException, UserAppRevokedException {
-        if (userList.isEmpty()) {
-            throw new IOException("Users list empty");
-        }
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        userList.forEach(user -> user = user.toLowerCase());
-        final String searchQuery = (isID ? "id" : "login") + '=';
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_USERS +
-                        "?" + searchQuery + String.join("&" + searchQuery, userList)
-        );
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<User> users = new HashSet<>();
-            final JsonArray fetched = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
-
-            for (final JsonElement element : fetched) {
-                final JsonObject data = element.getAsJsonObject();
-                final User.BroadcasterType broadcasterType;
-                final String bdType = data.get("broadcaster_type").getAsString();
-
-                if (bdType.equals("partner")) {
-                    broadcasterType = User.BroadcasterType.PARTNER;
-                } else if (bdType.equals("affiliate")) {
-                    broadcasterType = User.BroadcasterType.AFFILIATE;
-                } else {
-                    broadcasterType = User.BroadcasterType.NORMAL;
-                }
-
-                users.add(new User(
-                        broadcasterType,
-                        data.get("description").getAsString(),
-                        data.get("display_name").getAsString(),
-                        data.get("id").getAsString(),
-                        data.get("login").getAsString(),
-                        data.get("offline_image_url").getAsString(),
-                        data.get("profile_image_url").getAsString(),
-                        data.get("view_count").getAsInt(),
-                        Date.from(Instant.parse(data.get("created_at").getAsString()))
-                ));
-            }
-            return users;
-        } else {
-            throw new IOException("An error occurred while fetching users.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws IOException, UserAppRevokedException {
-        if (userList.isEmpty()) {
-            throw new IOException("Streamer list empty");
-        }
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        userList.forEach(user -> user = user.toLowerCase());
-        final String searchQuery = (isID ? "user_id" : "user_login") + '=';
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_STREAMS +
-                        "?" + searchQuery + String.join("&" + searchQuery, userList)
-        );
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<Stream> streams = new HashSet<>();
-            final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
-
-            for (final JsonElement elem : data) {
-                final JsonObject stream = elem.getAsJsonObject();
-                streams.add(new Stream(
-                        stream.get("id").getAsString(),
-                        stream.get("user_id").getAsString(),
-                        stream.get("user_login").getAsString(),
-                        stream.get("user_name").getAsString(),
-                        stream.get("game_id").getAsString(),
-                        stream.get("game_name").getAsString(),
-                        stream.get("title").getAsString(),
-                        stream.get("viewer_count").getAsInt(),
-                        Date.from(Instant.parse(stream.get("started_at").getAsString())),
-                        stream.get("language").getAsString(),
-                        stream.get("thumbnail_url").getAsString(),
-                        stream.get("is_mature").getAsBoolean()
-                ));
-            }
-            return streams;
-        } else {
-            throw new IOException("An error occurred while fetching streams.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    private Game getGame(final String data, boolean isID) throws IOException, UserAppRevokedException {
+    @Nullable
+    public Follow getUserLastFollowerAndFollowCount(final String userId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -660,7 +465,222 @@ public class TwitchApi {
 
             final URI url = URI.create(
                     "https://" +
-                            TwitchResources.DOMAIN_TWITCH_API +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_USERS + "/follows" +
+                            "?to_id=" + userId + "&first=1"
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject getResponse = response.getBody().getAsJsonObject();
+                final JsonArray followElem = getResponse.get("data").getAsJsonArray();
+
+                if (followElem.size() < 1) {
+                    return null;
+                } else {
+                    final JsonObject follow = followElem.get(0).getAsJsonObject();
+                    return new Follow(
+                            follow.get("from_id").getAsString(),
+                            follow.get("from_login").getAsString(),
+                            follow.get("from_name").getAsString(),
+                            follow.get("to_id").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            Date.from(Instant.parse(follow.get("followed_at").getAsString())),
+                            getResponse.get("total").getAsInt()
+                    );
+                }
+            } else {
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching user count follow.", e);
+        }
+    }
+
+    @Nullable
+    public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_USERS + "/follows" +
+                            "?to_id=" + streamerId + "&from_id=" + userToCheckId
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                System.out.println(response.getBody());
+                final JsonObject getResponse = response.getBody().getAsJsonObject();
+                final JsonArray followElem = getResponse.get("data").getAsJsonArray();
+
+                if (followElem.size() < 1) {
+                    return null;
+                } else {
+                    final JsonObject follow = followElem.get(0).getAsJsonObject();
+                    return new Follow(
+                            follow.get("from_id").getAsString(),
+                            follow.get("from_login").getAsString(),
+                            follow.get("from_name").getAsString(),
+                            follow.get("to_id").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            follow.get("to_login").getAsString(),
+                            Date.from(Instant.parse(follow.get("followed_at").getAsString())),
+                            getResponse.get("total").getAsInt()
+                    );
+                }
+
+            } else {
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching user follow.", e);
+        }
+    }
+
+    public Game getGameById(final String gameId) throws TwitchApiException {
+        return getGame(gameId, true);
+    }
+
+    public Game getGameByName(final String gameName) throws TwitchApiException {
+        return getGame(gameName, false);
+    }
+
+    public Set<Stream> getStreamsByUserNames(final Set<String> userNames) throws TwitchApiException {
+        return getStreamInfo(userNames, false);
+    }
+
+    public Set<Stream> getStreamsById(final Set<String> idList) throws TwitchApiException {
+        return getStreamInfo(idList, true);
+    }
+
+    public Set<User> getUsersByUserName(final Set<String> userNames) throws TwitchApiException {
+        return getUsers(userNames, false);
+    }
+
+    public Set<User> getUsersById(final Set<String> idList) throws TwitchApiException {
+        return getUsers(idList, true);
+    }
+
+    private Set<User> getUsers(final Set<String> userList, boolean isID) throws TwitchApiException {
+        try {
+            if (userList.isEmpty()) {
+                throw new IOException("Users list empty");
+            }
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            userList.forEach(user -> user = user.toLowerCase());
+            final String searchQuery = (isID ? "id" : "login") + '=';
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_USERS +
+                            "?" + searchQuery + String.join("&" + searchQuery, userList)
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<User> users = new HashSet<>();
+                final JsonArray fetched = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement element : fetched) {
+                    final JsonObject data = element.getAsJsonObject();
+                    final User.BroadcasterType broadcasterType;
+                    final String bdType = data.get("broadcaster_type").getAsString();
+
+                    if (bdType.equals("partner")) {
+                        broadcasterType = User.BroadcasterType.PARTNER;
+                    } else if (bdType.equals("affiliate")) {
+                        broadcasterType = User.BroadcasterType.AFFILIATE;
+                    } else {
+                        broadcasterType = User.BroadcasterType.NORMAL;
+                    }
+
+                    users.add(new User(
+                            broadcasterType,
+                            data.get("description").getAsString(),
+                            data.get("display_name").getAsString(),
+                            data.get("id").getAsString(),
+                            data.get("login").getAsString(),
+                            data.get("offline_image_url").getAsString(),
+                            data.get("profile_image_url").getAsString(),
+                            data.get("view_count").getAsInt(),
+                            Date.from(Instant.parse(data.get("created_at").getAsString()))
+                    ));
+                }
+                return users;
+            } else {
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching users.", e);
+        }
+    }
+
+    private Set<Stream> getStreamInfo(final Set<String> userList, boolean isID) throws TwitchApiException {
+        try {
+            if (userList.isEmpty()) {
+                throw new IOException("Streamer list empty");
+            }
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            userList.forEach(user -> user = user.toLowerCase());
+            final String searchQuery = (isID ? "user_id" : "user_login") + '=';
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_STREAMS +
+                            "?" + searchQuery + String.join("&" + searchQuery, userList)
+            );
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Stream> streams = new HashSet<>();
+                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement elem : data) {
+                    final JsonObject stream = elem.getAsJsonObject();
+                    streams.add(new Stream(
+                            stream.get("id").getAsString(),
+                            stream.get("user_id").getAsString(),
+                            stream.get("user_login").getAsString(),
+                            stream.get("user_name").getAsString(),
+                            stream.get("game_id").getAsString(),
+                            stream.get("game_name").getAsString(),
+                            stream.get("title").getAsString(),
+                            stream.get("viewer_count").getAsInt(),
+                            Date.from(Instant.parse(stream.get("started_at").getAsString())),
+                            stream.get("language").getAsString(),
+                            stream.get("thumbnail_url").getAsString(),
+                            stream.get("is_mature").getAsBoolean()
+                    ));
+                }
+                return streams;
+            } else {
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching streams.", e);
+        }
+    }
+
+    @Nullable
+    private Game getGame(final String data, boolean isID) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
                             PATH_CHANNEL_GAMES +
                             "?" + (isID ? "id" : "name") + "=" + data
             );
@@ -675,10 +695,12 @@ public class TwitchApi {
                         dataGet.get("box_art_url").getAsString()
                 );
             } else {
-                throw new IOException("An error occurred while fetching game " + data + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+                throw new IOException("Http error code : " + response.getResponseCode() + " Body : " + response.getBody());
             }
         } catch (IndexOutOfBoundsException e) {
             return null;
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching game " + data + ".", e);
         }
     }
 
