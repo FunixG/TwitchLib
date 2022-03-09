@@ -1,4 +1,4 @@
-package fr.funixgaming.twitch.api;
+/*package fr.funixgaming.twitch.api;
 
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
@@ -123,7 +123,7 @@ class TestLibMain {
             Thread.sleep(1000);
             /*final UpdateChannel updateChannel = new UpdateChannel();
             updateChannel.setTitle("Test api");
-            api.updateChannelInformation(channelId, updateChannel);*/
+            api.updateChannelInformation(channelId, updateChannel);
             System.out.println("CHANNEL CHAT EMOTES\n" + api.getChannelEmotes(channelId));
             Thread.sleep(1000);
             System.out.println("CHANNEL CHAT CLIPS NO PARAMS\n" + api.getChannelClips(channelId, null));
@@ -180,7 +180,7 @@ class TestLibMain {
                 System.out.println(api.createClip(stream.getUserId()));
             }*/
             /*Thread.sleep(1000);
-            System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));*/
+            System.out.println("CHANNEL CHAT REWARDS\n" + api.getChannelCustomRewards(channelId));
         } catch (IOException | InterruptedException | UserAppRevokedException e) {
             e.printStackTrace();
         }
@@ -200,4 +200,4 @@ class TestLibMain {
     }
 
 }
-
+*/

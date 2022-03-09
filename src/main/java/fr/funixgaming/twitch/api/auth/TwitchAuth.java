@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
 import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
+import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,6 +37,7 @@ public class TwitchAuth {
 
     /**
      * Constructor used to create a new accessToken to call Twitch api services
+     * Used when you already have a accessToken, refreshToken and expiration date
      * https://dev.twitch.tv/docs/authentication
      *
      * @param clientId Twitch client app ID -> Get It from your console developer on https://dev.twitch.tv/console/apps
@@ -62,6 +65,51 @@ public class TwitchAuth {
             refresh();
         }
         isUsable();
+    }
+
+    /**
+     * Constructor used hen you don't have accessToken with a specified user (oauth)
+     *
+     * @param clientId Twitch client app ID -> Get It from your console developer on https://dev.twitch.tv/console/apps
+     * @param clientSecret Twitch client app Secret (Don't leak it) -> Get it from https://dev.twitch.tv/console/apps
+     * @param oauthCode Get the code from this : https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-authorization-code-flow
+     * @param redirectUrl The redirect url of your app on twitch api
+     * @throws TwitchApiException hen an error occurs
+     */
+    public TwitchAuth(final String clientId,
+                      final String clientSecret,
+                      final String oauthCode,
+                      final String redirectUrl) throws TwitchApiException {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.oauthCode = oauthCode;
+
+        try {
+            final HttpCalls.HttpJSONResponse response = HttpCalls.performJSONRequest(
+                    URI.create("https://" + TwitchApi.DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
+                            "?client_id=" + this.clientId +
+                            "&client_secret=" + this.clientSecret +
+                            "&code=" + this.oauthCode +
+                            "&grant_type=authorization_code" +
+                            "&redirect_uri=" + redirectUrl),
+                    HttpType.POST,
+                    null,
+                    null
+            );
+
+            if (response.getResponseCode().equals(200)) {
+                final JsonObject data = response.getBody().getAsJsonObject();
+
+                this.accessToken = data.get("access_token").getAsString();
+                this.refreshToken = data.get("refresh_token").getAsString();
+                this.expirationDate = Date.from(Instant.now().plusSeconds(data.get("expires_in").getAsInt()));
+                isUsable();
+            } else {
+                throw new IOException("The server returned an error. " + response.getResponseCode() + " " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occured when creating tokens.", e);
+        }
     }
 
     /**
@@ -95,7 +143,7 @@ public class TwitchAuth {
                 throw new UserAppRevokedException(response);
             }
         } catch (IOException e) {
-            throw new TwitchApiException("An error occured while checking is the token is usable.", e);
+            throw new TwitchApiException("An error occurred while checking if the token is usable.", e);
         }
     }
 
@@ -119,10 +167,10 @@ public class TwitchAuth {
                 this.refreshToken = body.get("refresh_token").getAsString();
                 this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
             } else {
-                throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
+                throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode() + " Body " + response.getBody());
             }
         } catch (IOException e) {
-            throw new TwitchApiException("An error occurred while refreshing tokens.");
+            throw new TwitchApiException("An error occurred while refreshing tokens.", e);
         }
     }
 
