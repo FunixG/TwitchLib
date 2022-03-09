@@ -3,11 +3,14 @@ package fr.funixgaming.twitch.api.auth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
+import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
 import lombok.Getter;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Date;
 
@@ -41,14 +44,14 @@ public class TwitchAuth {
      * @param accessToken app access token
      * @param refreshToken token to refresh
      * @param expirationDate expiration date of token
-     * @throws IOException when the twitch server has a problem
+     * @throws TwitchApiException when the twitch server has a problem
      */
     public TwitchAuth(final String clientId,
                       final String clientSecret,
                       final String oauthCode,
                       final String accessToken,
                       final String refreshToken,
-                      final Date expirationDate) throws IOException, UserAppRevokedException {
+                      final Date expirationDate) throws TwitchApiException {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.oauthCode = oauthCode;
@@ -76,46 +79,51 @@ public class TwitchAuth {
      * Check if the user connected with twitch api has revoked or not the access
      *
      * @return bool to know if the user has revoked the app token
-     * @throws IOException when an error
+     * @throws TwitchApiException when an error occurs
      */
-    public boolean isUsable() throws IOException, UserAppRevokedException {
+    public boolean isUsable() throws TwitchApiException {
         try {
-            final URI uri = new URI("https", TwitchApi.DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN_VALIDATE);
+            final URI uri = URI.create("https://" + TwitchApi.DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN_VALIDATE);
             final HttpJSONResponse response = performJSONRequest(uri, HttpType.GET, null, this);
 
-        if (response.getResponseCode().equals(200)) {
-            final JsonObject data = response.getBody().getAsJsonObject();
-            this.userName = data.get("login").getAsString();
-            this.userId = data.get("user_id").getAsString();
+            if (response.getResponseCode().equals(200)) {
+                final JsonObject data = response.getBody().getAsJsonObject();
+                this.userName = data.get("login").getAsString();
+                this.userId = data.get("user_id").getAsString();
 
-            return true;
-        } else {
-            throw new UserAppRevokedException(response);
+                return true;
+            } else {
+                throw new UserAppRevokedException(response);
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occured while checking is the token is usable.", e);
         }
     }
 
     /**
      * Method used to generate a new accessToken
      */
-    public void refresh() throws IOException {
+    public void refresh() throws TwitchApiException {
         try {
-            final URI url = new URI("https", TwitchApi.DOMAIN_TWITCH_AUTH_API, PATH_OAUTH_TOKEN,
-                    "client_id=" + clientId +
+            final URI url = URI.create("https://" + TwitchApi.DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
+                    "?client_id=" + clientId +
                             "&client_secret=" + clientSecret +
                             "&refresh_token=" + refreshToken +
-                            "&grant_type=refresh_token",
-                    null
+                            "&grant_type=refresh_token"
             );
 
-        final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
-        if (response.getResponseCode() == 200) {
-            final JsonObject body = response.getBody().getAsJsonObject();
+            final HttpJSONResponse response = performJSONRequest(url, HttpType.POST, null, null);
+            if (response.getResponseCode() == 200) {
+                final JsonObject body = response.getBody().getAsJsonObject();
 
-            this.accessToken = body.get("access_token").getAsString();
-            this.refreshToken = body.get("refresh_token").getAsString();
-            this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
-        } else {
-            throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
+                this.accessToken = body.get("access_token").getAsString();
+                this.refreshToken = body.get("refresh_token").getAsString();
+                this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
+            } else {
+                throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while refreshing tokens.");
         }
     }
 
@@ -144,4 +152,8 @@ public class TwitchAuth {
         return new Gson().fromJson(json, TwitchAuth.class);
     }
 
+    @Override
+    public String toString() {
+        return this.toJson(true);
+    }
 }

@@ -1,8 +1,7 @@
 package fr.funixgaming.twitch.api;
 
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
-import fr.funixgaming.twitch.api.auth.TwitchScopes;
-import fr.funixgaming.twitch.api.auth.UserAppRevokedException;
+import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchBot;
 import fr.funixgaming.twitch.api.chatbot_irc.TwitchEvents;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;

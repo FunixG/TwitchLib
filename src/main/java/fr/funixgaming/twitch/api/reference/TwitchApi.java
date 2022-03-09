@@ -5,7 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.funixgaming.twitch.api.TwitchResources;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
-import fr.funixgaming.twitch.api.auth.UserAppRevokedException;
+import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
+import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
@@ -18,7 +19,6 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
@@ -45,380 +45,413 @@ public class TwitchApi {
 
     private final TwitchAuth twitchAuth;
 
-    public Channel getChannelInformation(@NonNull final String channelId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
+    public Channel getChannelInformation(@NonNull final String channelId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
 
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL +
-                        "?broadcaster_id=" + channelId
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final JsonObject data = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
-            return new Channel(
-                    data.get("broadcaster_id").getAsString(),
-                    data.get("broadcaster_login").getAsString(),
-                    data.get("broadcaster_name").getAsString(),
-                    data.get("broadcaster_language").getAsString(),
-                    data.get("game_id").getAsString(),
-                    data.get("game_name").getAsString(),
-                    data.get("title").getAsString(),
-                    data.get("delay").getAsInt()
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL +
+                            "?broadcaster_id=" + channelId
             );
-        } else {
-            throw new IOException("An error occurred while fetching channelId " + channelId + ". Http error code : " + response.getResponseCode());
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject data = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
+                return new Channel(
+                        data.get("broadcaster_id").getAsString(),
+                        data.get("broadcaster_login").getAsString(),
+                        data.get("broadcaster_name").getAsString(),
+                        data.get("broadcaster_language").getAsString(),
+                        data.get("game_id").getAsString(),
+                        data.get("game_name").getAsString(),
+                        data.get("title").getAsString(),
+                        data.get("delay").getAsInt()
+                );
+            } else {
+                throw new TwitchApiException("An error occurred while fetching channelId " + channelId + ". Http error code : " + response.getResponseCode());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occured while fetching channel information.", e);
         }
     }
 
-    public void updateChannelInformation(@NonNull final String channelId, @NonNull final UpdateChannel updateChannel) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
+    public void updateChannelInformation(@NonNull final String channelId,
+                                         @NonNull final UpdateChannel updateChannel) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
 
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL +
-                        "?broadcaster_id=" + channelId
-        );
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL +
+                            "?broadcaster_id=" + channelId
+            );
 
-        final JsonObject body = new JsonObject();
-        if (updateChannel.getGameId() != null) {
-            body.addProperty("game_id", updateChannel.getGameId());
-        }
-        if (updateChannel.getBroadcasterLanguage() != null) {
-            body.addProperty("broadcaster_language", updateChannel.getBroadcasterLanguage());
-        }
-        if (updateChannel.getTitle() != null) {
-            body.addProperty("title", updateChannel.getTitle());
-        }
-        if (updateChannel.getDelay() != null) {
-            body.addProperty("delay", updateChannel.getDelay());
-        }
+            final JsonObject body = new JsonObject();
+            if (updateChannel.getGameId() != null) {
+                body.addProperty("game_id", updateChannel.getGameId());
+            }
+            if (updateChannel.getBroadcasterLanguage() != null) {
+                body.addProperty("broadcaster_language", updateChannel.getBroadcasterLanguage());
+            }
+            if (updateChannel.getTitle() != null) {
+                body.addProperty("title", updateChannel.getTitle());
+            }
+            if (updateChannel.getDelay() != null) {
+                body.addProperty("delay", updateChannel.getDelay());
+            }
 
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.PATCH, body.toString(), twitchAuth);
-        if (response.getResponseCode() != 204) {
-            throw new IOException("An error occurred while updating channelId " + channelId + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.PATCH, body.toString(), twitchAuth);
+            if (response.getResponseCode() != 204) {
+                throw new IOException("An error occurred while updating channelId " + channelId + ".\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while updating channel.", e);
         }
     }
 
-    public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
+    public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_POINTS +
+                            "?broadcaster_id=" + channelId
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<ChannelReward> rewards = new HashSet<>();
+                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement element : data) {
+                    final JsonObject reward = element.getAsJsonObject();
+
+                    final JsonObject image = reward.get("image").getAsJsonObject();
+                    final JsonObject defaultImage = reward.get("default_image").getAsJsonObject();
+                    final JsonObject maxUsageStream = reward.get("max_per_stream_setting").getAsJsonObject();
+                    final JsonObject maxUsageStreamUser = reward.get("max_per_user_per_stream_setting").getAsJsonObject();
+                    final JsonObject globalCoolDown = reward.get("global_cooldown_setting").getAsJsonObject();
+                    final JsonElement usageStreamData = reward.get("redemptions_redeemed_current_stream");
+                    final int usageStream;
+
+                    if (usageStreamData.isJsonNull()) {
+                        usageStream = 0;
+                    } else {
+                        usageStream = usageStreamData.getAsInt();
+                    }
+
+                    rewards.add(new ChannelReward(
+                            reward.get("broadcaster_id").getAsString(),
+                            reward.get("broadcaster_login").getAsString(),
+                            reward.get("broadcaster_name").getAsString(),
+                            reward.get("id").getAsString(),
+                            reward.get("title").getAsString(),
+                            reward.get("prompt").getAsString(),
+                            reward.get("cost").getAsInt(),
+                            new TwitchImage(
+                                    image.get("url_1x").getAsString(),
+                                    image.get("url_2x").getAsString(),
+                                    image.get("url_4x").getAsString()
+                            ),
+                            new TwitchImage(
+                                    defaultImage.get("url_1x").getAsString(),
+                                    defaultImage.get("url_2x").getAsString(),
+                                    defaultImage.get("url_4x").getAsString()
+                            ),
+                            reward.get("background_color").getAsString(),
+                            reward.get("is_enabled").getAsBoolean(),
+                            reward.get("is_user_input_required").getAsBoolean(),
+                            new ChannelReward.MaxRewardUsage(
+                                    maxUsageStream.get("is_enabled").getAsBoolean(),
+                                    maxUsageStream.get("max_per_stream").getAsInt()
+                            ),
+                            new ChannelReward.MaxRewardUsage(
+                                    maxUsageStreamUser.get("is_enabled").getAsBoolean(),
+                                    maxUsageStreamUser.get("max_per_user_per_stream").getAsInt()
+                            ),
+                            new ChannelReward.MaxRewardUsage(
+                                    globalCoolDown.get("is_enabled").getAsBoolean(),
+                                    globalCoolDown.get("global_cooldown_seconds").getAsInt()
+                            ),
+                            reward.get("is_paused").getAsBoolean(),
+                            reward.get("is_in_stock").getAsBoolean(),
+                            usageStream
+                    ));
+                }
+                return rewards;
+            } else {
+                throw new IOException("Http Error code : " + response.getResponseCode());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching channel rewards.", e);
         }
+    }
 
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_POINTS +
-                        "?broadcaster_id=" + channelId
-        );
+    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
 
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<ChannelReward> rewards = new HashSet<>();
-            final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_CHAT +
+                            "?broadcaster_id=" + channelId
+            );
 
-            for (final JsonElement element : data) {
-                final JsonObject reward = element.getAsJsonObject();
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<ChannelEmotes> emotes = new HashSet<>();
+                final JsonArray emotesData = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
 
-                final JsonObject image = reward.get("image").getAsJsonObject();
-                final JsonObject defaultImage = reward.get("default_image").getAsJsonObject();
-                final JsonObject maxUsageStream = reward.get("max_per_stream_setting").getAsJsonObject();
-                final JsonObject maxUsageStreamUser = reward.get("max_per_user_per_stream_setting").getAsJsonObject();
-                final JsonObject globalCoolDown = reward.get("global_cooldown_setting").getAsJsonObject();
-                final JsonElement usageStreamData = reward.get("redemptions_redeemed_current_stream");
-                final int usageStream;
+                for (final JsonElement emoteData : emotesData) {
+                    final JsonObject data = emoteData.getAsJsonObject();
+                    final JsonObject image = data.get("images").getAsJsonObject();
+                    final String subTierData = data.get("tier").getAsString();
+                    NoticeEventParser.SubTier subTier = null;
 
-                if (usageStreamData.isJsonNull()) {
-                    usageStream = 0;
-                } else {
-                    usageStream = usageStreamData.getAsInt();
+                    if (!subTierData.isEmpty()) {
+                        for (final NoticeEventParser.SubTier sub : NoticeEventParser.SubTier.values()) {
+                            if (sub.getTwitchTag().equals(subTierData)) {
+                                subTier = sub;
+                                break;
+                            }
+                        }
+                    }
+
+                    emotes.add(new ChannelEmotes(
+                            data.get("id").getAsString(),
+                            data.get("name").getAsString(),
+                            new TwitchImage(
+                                    image.get("url_1x").getAsString(),
+                                    image.get("url_2x").getAsString(),
+                                    image.get("url_4x").getAsString()
+                            ),
+                            subTier,
+                            ChannelEmotes.EmoteType.getByType(data.get("emote_type").getAsString())
+                    ));
+                }
+                return emotes;
+            } else {
+                throw new IOException("Http Error code : " + response.getResponseCode() + "\nBody: " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching channel emotes.", e);
+        }
+    }
+
+    public ClipCreation createClip(@NonNull final String channelId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_CLIP +
+                            "?broadcaster_id=" + channelId
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.POST, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonObject clip = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
+                return new ClipCreation(
+                        clip.get("id").getAsString(),
+                        clip.get("edit_url").getAsString()
+                );
+            } else {
+                throw new IOException("\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while creating a clip on channel" + channelId + ".", e);
+        }
+    }
+
+    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+            final Set<String> searchQuery = new HashSet<>();
+
+            if (search != null) {
+                if (search.getNumberOfClips() != null) {
+                    searchQuery.add("first=" + search.getNumberOfClips());
+                }
+                if (search.getClipAfterCursor() != null) {
+                    searchQuery.add("after=" + search.getClipAfterCursor());
+                }
+                if (search.getClipBeforeCursor() != null) {
+                    searchQuery.add("before=" + search.getClipBeforeCursor());
+                }
+                if (search.getEndedAtSearch() != null) {
+                    searchQuery.add("ended_at=" + TwitchResources.dateToRFC3339(search.getEndedAtSearch()));
+                }
+                if (search.getStartedAtSearch() != null) {
+                    searchQuery.add("started_at=" + TwitchResources.dateToRFC3339(search.getStartedAtSearch()));
+                }
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_CLIP +
+                            "?broadcaster_id=" + channelId + (searchQuery.size() > 0 ? "&" + String.join("&", searchQuery) : "")
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Clip> clips = new HashSet<>();
+                final JsonObject body = response.getBody().getAsJsonObject();
+                final JsonArray clipsGet = body.get("data").getAsJsonArray();
+                final JsonElement pagination = body.get("pagination");
+                String cursor = null;
+
+                if (!pagination.isJsonNull()) {
+                    cursor = pagination.getAsJsonObject().get("cursor").getAsString();
                 }
 
-                rewards.add(new ChannelReward(
-                        reward.get("broadcaster_id").getAsString(),
-                        reward.get("broadcaster_login").getAsString(),
-                        reward.get("broadcaster_name").getAsString(),
-                        reward.get("id").getAsString(),
-                        reward.get("title").getAsString(),
-                        reward.get("prompt").getAsString(),
-                        reward.get("cost").getAsInt(),
-                        new TwitchImage(
-                                image.get("url_1x").getAsString(),
-                                image.get("url_2x").getAsString(),
-                                image.get("url_4x").getAsString()
-                        ),
-                        new TwitchImage(
-                                defaultImage.get("url_1x").getAsString(),
-                                defaultImage.get("url_2x").getAsString(),
-                                defaultImage.get("url_4x").getAsString()
-                        ),
-                        reward.get("background_color").getAsString(),
-                        reward.get("is_enabled").getAsBoolean(),
-                        reward.get("is_user_input_required").getAsBoolean(),
-                        new ChannelReward.MaxRewardUsage(
-                                maxUsageStream.get("is_enabled").getAsBoolean(),
-                                maxUsageStream.get("max_per_stream").getAsInt()
-                        ),
-                        new ChannelReward.MaxRewardUsage(
-                                maxUsageStreamUser.get("is_enabled").getAsBoolean(),
-                                maxUsageStreamUser.get("max_per_user_per_stream").getAsInt()
-                        ),
-                        new ChannelReward.MaxRewardUsage(
-                                globalCoolDown.get("is_enabled").getAsBoolean(),
-                                globalCoolDown.get("global_cooldown_seconds").getAsInt()
-                        ),
-                        reward.get("is_paused").getAsBoolean(),
-                        reward.get("is_in_stock").getAsBoolean(),
-                        usageStream
-                ));
+                for (final JsonElement clip : clipsGet) {
+                    final JsonObject data = clip.getAsJsonObject();
+
+                    clips.add(new Clip(
+                            data.get("id").getAsString(),
+                            data.get("url").getAsString(),
+                            data.get("embed_url").getAsString(),
+                            data.get("broadcaster_id").getAsString(),
+                            data.get("broadcaster_name").getAsString(),
+                            data.get("creator_id").getAsString(),
+                            data.get("creator_name").getAsString(),
+                            data.get("video_id").getAsString(),
+                            data.get("game_id").getAsString(),
+                            data.get("language").getAsString(),
+                            data.get("title").getAsString(),
+                            data.get("view_count").getAsInt(),
+                            TwitchResources.rfc3339ToDate(data.get("created_at").getAsString()),
+                            data.get("thumbnail_url").getAsString(),
+                            data.get("duration").getAsFloat(),
+                            cursor
+                    ));
+                }
+                return clips;
+            } else {
+                throw new IOException("Error code : " + response.getResponseCode());
             }
-            return rewards;
-        } else {
-            throw new IOException("An error occurred while fetching channel rewards. Http Error code : " + response.getResponseCode());
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching clips on channel " + channelId + ".", e);
         }
     }
 
-    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
+    public Set<Vod> getStreamVodList(@NonNull final String streamerId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
+
+            final URI url = URI.create(
+                    "https://" +
+                            DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_VIDEOS +
+                            "?user_id=" + streamerId + "&first=100"
+            );
+
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final Set<Vod> list = new HashSet<>();
+                final JsonArray get = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+
+                for (final JsonElement element : get) {
+                    final JsonObject vod = element.getAsJsonObject();
+                    list.add(new Vod(
+                            vod.get("id").getAsString(),
+                            vod.get("stream_id").getAsString(),
+                            vod.get("user_id").getAsString(),
+                            vod.get("user_login").getAsString(),
+                            vod.get("user_name").getAsString(),
+                            vod.get("title").getAsString(),
+                            vod.get("description").getAsString(),
+                            Date.from(Instant.parse(vod.get("created_at").getAsString())),
+                            Date.from(Instant.parse(vod.get("published_at").getAsString())),
+                            vod.get("url").getAsString(),
+                            vod.get("thumbnail_url").getAsString(),
+                            vod.get("view_count").getAsInt(),
+                            vod.get("language").getAsString(),
+                            vod.get("duration").getAsString()
+                    ));
+                }
+                return list;
+            } else {
+                throw new IOException("Error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+            }
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching vods on channel " + streamerId + ".", e);
         }
+    }
 
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_CHAT +
-                        "?broadcaster_id=" + channelId
-        );
+    public LastSub getStreamerLastSubAndCount(final String streamerId) throws TwitchApiException {
+        try {
+            if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
+                twitchAuth.refresh();
+            }
 
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<ChannelEmotes> emotes = new HashSet<>();
-            final JsonArray emotesData = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+            final URI url = URI.create(
+                    "https://" +
+                            TwitchResources.DOMAIN_TWITCH_API +
+                            PATH_CHANNEL_SUBS +
+                            "?broadcaster_id=" + streamerId + "&first=1"
+            );
 
-            for (final JsonElement emoteData : emotesData) {
-                final JsonObject data = emoteData.getAsJsonObject();
-                final JsonObject image = data.get("images").getAsJsonObject();
-                final String subTierData = data.get("tier").getAsString();
-                NoticeEventParser.SubTier subTier = null;
+            final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
+            if (response.getResponseCode() == 200) {
+                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
 
-                if (!subTierData.isEmpty()) {
-                    for (final NoticeEventParser.SubTier sub : NoticeEventParser.SubTier.values()) {
-                        if (sub.getTwitchTag().equals(subTierData)) {
-                            subTier = sub;
+                if (data.size() > 0) {
+                    final JsonObject lastSub = data.get(0).getAsJsonObject();
+                    final String tierSubStr = lastSub.get("tier").getAsString();
+                    NoticeEventParser.SubTier subTier = NoticeEventParser.SubTier.TIER_1;
+
+                    for (final NoticeEventParser.SubTier tier : NoticeEventParser.SubTier.values()) {
+                        if (tier.getTwitchTag().equals(tierSubStr)) {
+                            subTier = tier;
                             break;
                         }
                     }
+
+                    return new LastSub(
+                            lastSub.get("broadcaster_id").getAsString(),
+                            lastSub.get("broadcaster_login").getAsString(),
+                            lastSub.get("broadcaster_name").getAsString(),
+                            lastSub.get("gifter_id").getAsString(),
+                            lastSub.get("gifter_login").getAsString(),
+                            lastSub.get("gifter_name").getAsString(),
+                            lastSub.get("is_gift").getAsBoolean(),
+                            subTier,
+                            lastSub.get("user_id").getAsString(),
+                            lastSub.get("user_name").getAsString(),
+                            lastSub.get("user_login").getAsString(),
+                            lastSub.get("total").getAsInt()
+                    );
+                } else {
+                    return null;
                 }
-
-                emotes.add(new ChannelEmotes(
-                        data.get("id").getAsString(),
-                        data.get("name").getAsString(),
-                        new TwitchImage(
-                                image.get("url_1x").getAsString(),
-                                image.get("url_2x").getAsString(),
-                                image.get("url_4x").getAsString()
-                        ),
-                        subTier,
-                        ChannelEmotes.EmoteType.getByType(data.get("emote_type").getAsString())
-                ));
-            }
-            return emotes;
-        } else {
-            throw new IOException("An error occurred while fetching channel emotes.\nHttp Error code : " + response.getResponseCode() + "\nBody: " + response.getBody());
-        }
-    }
-
-    public ClipCreation createClip(@NonNull final String channelId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_CLIP +
-                        "?broadcaster_id=" + channelId
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.POST, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final JsonObject clip = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
-            return new ClipCreation(
-                    clip.get("id").getAsString(),
-                    clip.get("edit_url").getAsString()
-            );
-        } else {
-            throw new IOException("An error occurred while creating a clip on channel " + channelId + ".\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-        final Set<String> searchQuery = new HashSet<>();
-
-        if (search != null) {
-            if (search.getNumberOfClips() != null) {
-                searchQuery.add("first=" + search.getNumberOfClips());
-            }
-            if (search.getClipAfterCursor() != null) {
-                searchQuery.add("after=" + search.getClipAfterCursor());
-            }
-            if (search.getClipBeforeCursor() != null) {
-                searchQuery.add("before=" + search.getClipBeforeCursor());
-            }
-            if (search.getEndedAtSearch() != null) {
-                searchQuery.add("ended_at=" + TwitchResources.dateToRFC3339(search.getEndedAtSearch()));
-            }
-            if (search.getStartedAtSearch() != null) {
-                searchQuery.add("started_at=" + TwitchResources.dateToRFC3339(search.getStartedAtSearch()));
-            }
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_CLIP +
-                        "?broadcaster_id=" + channelId + (searchQuery.size() > 0 ? "&" + String.join("&", searchQuery) : "")
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<Clip> clips = new HashSet<>();
-            final JsonObject body = response.getBody().getAsJsonObject();
-            final JsonArray clipsGet = body.get("data").getAsJsonArray();
-            final JsonElement pagination = body.get("pagination");
-            String cursor = null;
-
-            if (!pagination.isJsonNull()) {
-                cursor = pagination.getAsJsonObject().get("cursor").getAsString();
-            }
-
-            for (final JsonElement clip : clipsGet) {
-                final JsonObject data = clip.getAsJsonObject();
-
-                clips.add(new Clip(
-                        data.get("id").getAsString(),
-                        data.get("url").getAsString(),
-                        data.get("embed_url").getAsString(),
-                        data.get("broadcaster_id").getAsString(),
-                        data.get("broadcaster_name").getAsString(),
-                        data.get("creator_id").getAsString(),
-                        data.get("creator_name").getAsString(),
-                        data.get("video_id").getAsString(),
-                        data.get("game_id").getAsString(),
-                        data.get("language").getAsString(),
-                        data.get("title").getAsString(),
-                        data.get("view_count").getAsInt(),
-                        TwitchResources.rfc3339ToDate(data.get("created_at").getAsString()),
-                        data.get("thumbnail_url").getAsString(),
-                        data.get("duration").getAsFloat(),
-                        cursor
-                ));
-            }
-            return clips;
-        } else {
-            throw new IOException("An error occurred while fetching clips on channel " + channelId + ". Error code : " + response.getResponseCode());
-        }
-    }
-
-    public Set<Vod> getStreamVodList(@NonNull final String streamerId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_VIDEOS +
-                        "?user_id=" + streamerId + "&first=100"
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final Set<Vod> list = new HashSet<>();
-            final JsonArray get = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
-
-            for (final JsonElement element : get) {
-                final JsonObject vod = element.getAsJsonObject();
-                list.add(new Vod(
-                        vod.get("id").getAsString(),
-                        vod.get("stream_id").getAsString(),
-                        vod.get("user_id").getAsString(),
-                        vod.get("user_login").getAsString(),
-                        vod.get("user_name").getAsString(),
-                        vod.get("title").getAsString(),
-                        vod.get("description").getAsString(),
-                        Date.from(Instant.parse(vod.get("created_at").getAsString())),
-                        Date.from(Instant.parse(vod.get("published_at").getAsString())),
-                        vod.get("url").getAsString(),
-                        vod.get("thumbnail_url").getAsString(),
-                        vod.get("view_count").getAsInt(),
-                        vod.get("language").getAsString(),
-                        vod.get("duration").getAsString()
-                ));
-            }
-            return list;
-        } else {
-            throw new IOException("An error occurred while fetching vods on channel " + streamerId + ".\nError code : " + response.getResponseCode() + "\nBody : " + response.getBody());
-        }
-    }
-
-    public LastSub getStreamerLastSubAndCount(final String streamerId) throws IOException, UserAppRevokedException {
-        if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
-            twitchAuth.refresh();
-        }
-
-        final URI url = URI.create(
-                "https://" +
-                        TwitchResources.DOMAIN_TWITCH_API +
-                        PATH_CHANNEL_SUBS +
-                        "?broadcaster_id=" + streamerId + "&first=1"
-        );
-
-        final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
-        if (response.getResponseCode() == 200) {
-            final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
-
-            if (data.size() > 0) {
-                final JsonObject lastSub = data.get(0).getAsJsonObject();
-                final String tierSubStr = lastSub.get("tier").getAsString();
-                NoticeEventParser.SubTier subTier = NoticeEventParser.SubTier.TIER_1;
-
-                for (final NoticeEventParser.SubTier tier : NoticeEventParser.SubTier.values()) {
-                    if (tier.getTwitchTag().equals(tierSubStr)) {
-                        subTier = tier;
-                        break;
-                    }
-                }
-
-                return new LastSub(
-                        lastSub.get("broadcaster_id").getAsString(),
-                        lastSub.get("broadcaster_login").getAsString(),
-                        lastSub.get("broadcaster_name").getAsString(),
-                        lastSub.get("gifter_id").getAsString(),
-                        lastSub.get("gifter_login").getAsString(),
-                        lastSub.get("gifter_name").getAsString(),
-                        lastSub.get("is_gift").getAsBoolean(),
-                        subTier,
-                        lastSub.get("user_id").getAsString(),
-                        lastSub.get("user_name").getAsString(),
-                        lastSub.get("user_login").getAsString(),
-                        lastSub.get("total").getAsInt()
-                );
             } else {
-                return null;
+                throw new IOException("Http error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
             }
-        } else {
-            throw new IOException("An error occurred while fetching user count subs.\nHttp error code : " + response.getResponseCode() + "\nBody : " + response.getBody());
+        } catch (IOException e) {
+            throw new TwitchApiException("An error occurred while fetching user count subs.", e);
         }
     }
 
