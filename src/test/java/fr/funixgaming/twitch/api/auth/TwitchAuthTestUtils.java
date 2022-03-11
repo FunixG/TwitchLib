@@ -34,7 +34,6 @@ public class TwitchAuthTestUtils {
         }
 
         saveAuthInFile();
-        System.out.println("Logged user: " + auth.getUserName() + " id: " + auth.getUserId());
         return auth;
     }
 

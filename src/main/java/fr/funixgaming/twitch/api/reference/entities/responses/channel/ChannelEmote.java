@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ChannelEmotes extends ApiEntity {
+public class ChannelEmote extends ApiEntity {
     public enum EmoteType {
         BITS,
         FOLLOWER,
@@ -36,9 +36,9 @@ public class ChannelEmotes extends ApiEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ChannelEmotes) {
-            final ChannelEmotes channelEmotes = (ChannelEmotes) obj;
-            return channelEmotes.getId().equals(id);
+        if (obj instanceof ChannelEmote) {
+            final ChannelEmote channelEmote = (ChannelEmote) obj;
+            return channelEmote.getId().equals(id);
         } else {
             return false;
         }
