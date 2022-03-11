@@ -8,7 +8,6 @@ import fr.funixgaming.twitch.api.exceptions.UserAppRevokedException;
 import fr.funixgaming.twitch.api.reference.TwitchApi;
 import fr.funixgaming.twitch.api.tools.HttpCalls;
 import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;

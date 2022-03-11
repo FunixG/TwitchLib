@@ -137,7 +137,7 @@ public class TwitchApi {
                 for (final JsonElement element : data) {
                     final JsonObject reward = element.getAsJsonObject();
 
-                    final JsonObject image = reward.get("image").getAsJsonObject();
+                    final JsonElement image = reward.get("image");
                     final JsonObject defaultImage = reward.get("default_image").getAsJsonObject();
                     final JsonObject maxUsageStream = reward.get("max_per_stream_setting").getAsJsonObject();
                     final JsonObject maxUsageStreamUser = reward.get("max_per_user_per_stream_setting").getAsJsonObject();
@@ -151,6 +151,18 @@ public class TwitchApi {
                         usageStream = usageStreamData.getAsInt();
                     }
 
+                    final TwitchImage twitchImage;
+                    if (image.isJsonNull()) {
+                        twitchImage = null;
+                    } else {
+                        final JsonObject img = image.getAsJsonObject();
+                        twitchImage = new TwitchImage(
+                                img.get("url_1x").getAsString(),
+                                img.get("url_2x").getAsString(),
+                                img.get("url_4x").getAsString()
+                        );
+                    }
+
                     rewards.add(new ChannelReward(
                             reward.get("broadcaster_id").getAsString(),
                             reward.get("broadcaster_login").getAsString(),
@@ -159,11 +171,7 @@ public class TwitchApi {
                             reward.get("title").getAsString(),
                             reward.get("prompt").getAsString(),
                             reward.get("cost").getAsInt(),
-                            new TwitchImage(
-                                    image.get("url_1x").getAsString(),
-                                    image.get("url_2x").getAsString(),
-                                    image.get("url_4x").getAsString()
-                            ),
+                            twitchImage,
                             new TwitchImage(
                                     defaultImage.get("url_1x").getAsString(),
                                     defaultImage.get("url_2x").getAsString(),
@@ -191,14 +199,14 @@ public class TwitchApi {
                 }
                 return rewards;
             } else {
-                throw new IOException("Http Error code : " + response.getResponseCode());
+                throw new IOException("Http Error code : " + response.getResponseCode() + " Body: " + response.getBody());
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while fetching channel rewards.", e);
         }
     }
 
-    public Set<ChannelEmotes> getChannelEmotes(@NonNull final String channelId) throws TwitchApiException {
+    public Set<ChannelEmote> getChannelEmotes(@NonNull final String channelId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -213,7 +221,7 @@ public class TwitchApi {
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
-                final Set<ChannelEmotes> emotes = new HashSet<>();
+                final Set<ChannelEmote> emotes = new HashSet<>();
                 final JsonArray emotesData = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
 
                 for (final JsonElement emoteData : emotesData) {
@@ -231,7 +239,7 @@ public class TwitchApi {
                         }
                     }
 
-                    emotes.add(new ChannelEmotes(
+                    emotes.add(new ChannelEmote(
                             data.get("id").getAsString(),
                             data.get("name").getAsString(),
                             new TwitchImage(
@@ -240,7 +248,7 @@ public class TwitchApi {
                                     image.get("url_4x").getAsString()
                             ),
                             subTier,
-                            ChannelEmotes.EmoteType.getByType(data.get("emote_type").getAsString())
+                            ChannelEmote.EmoteType.getByType(data.get("emote_type").getAsString())
                     ));
                 }
                 return emotes;
@@ -266,7 +274,7 @@ public class TwitchApi {
             );
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.POST, null, twitchAuth);
-            if (response.getResponseCode() == 200) {
+            if (response.getResponseCode() == 202) {
                 final JsonObject clip = response.getBody().getAsJsonObject().get("data").getAsJsonArray().get(0).getAsJsonObject();
                 return new ClipCreation(
                         clip.get("id").getAsString(),
@@ -280,7 +288,7 @@ public class TwitchApi {
         }
     }
 
-    public Set<Clip> getChannelClips(@NonNull final String channelId, final ClipSearch search) throws TwitchApiException {
+    public Set<Clip> getChannelClips(@NonNull final String channelId, @Nullable final ClipSearch search) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -498,6 +506,12 @@ public class TwitchApi {
         }
     }
 
+    /**
+     * @param userToCheckId id of channel is following streamerId
+     * @param streamerId id of channel to check
+     * @return Follow if the streamer is following and null if not following
+     * @throws TwitchApiException error
+     */
     @Nullable
     public Follow isUserFollowing(final String userToCheckId, final String streamerId) throws TwitchApiException {
         try {
@@ -542,10 +556,12 @@ public class TwitchApi {
         }
     }
 
+    @Nullable
     public Game getGameById(final String gameId) throws TwitchApiException {
         return getGame(gameId, true);
     }
 
+    @Nullable
     public Game getGameByName(final String gameName) throws TwitchApiException {
         return getGame(gameName, false);
     }
