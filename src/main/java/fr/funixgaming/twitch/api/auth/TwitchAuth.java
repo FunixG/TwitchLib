@@ -195,12 +195,18 @@ public class TwitchAuth {
      * @param json JsonData got from the call of toJson
      * @return twitch api class instance
      */
-    public static TwitchAuth fromJson(final String json) {
-        return new Gson().fromJson(json, TwitchAuth.class);
+    public static TwitchAuth fromJson(final String json) throws TwitchApiException {
+        final TwitchAuth twitchAuth = new Gson().fromJson(json, TwitchAuth.class);
+
+        if (!twitchAuth.isValid()) {
+            twitchAuth.refresh();
+        }
+        twitchAuth.isUsable();
+        return twitchAuth;
     }
 
     @Override
     public String toString() {
-        return this.toJson(true);
+        return this.toJson(false);
     }
 }
