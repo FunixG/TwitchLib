@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.net.SocketException;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class IRCSocketClient {
 
@@ -18,6 +20,7 @@ public abstract class IRCSocketClient {
 
     private final Queue<String> messagesQueue = new PriorityQueue<>();
     private final TwitchThreadPool threadPool;
+    private final Logger logger;
 
     private boolean isRunning = true;
     private boolean twitchReady = false;
@@ -29,7 +32,13 @@ public abstract class IRCSocketClient {
     protected IRCSocketClient(final String domain, final int port, final String username, final String oauthToken) {
         this.threadPool = new TwitchThreadPool(6);
         this.username = username.toLowerCase();
-        this.oauthToken = oauthToken;
+        this.logger = Logger.getLogger("TwitchIRC");
+
+        if (oauthToken.startsWith("oauth:")) {
+            this.oauthToken = oauthToken;
+        } else {
+            this.oauthToken = "oauth:" + oauthToken;
+        }
 
         this.start(domain, port);
     }
@@ -38,13 +47,13 @@ public abstract class IRCSocketClient {
         new Thread(() -> {
             while (this.isRunning) {
                 try {
-                    System.out.println("Connecting to " + domain + ':' + port + "...");
+                    logger.log(Level.INFO, "Connecting to " + domain + ':' + port + "...");
 
                     final SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                     this.socket = (SSLSocket) factory.createSocket(domain, port);
 
                 } catch (IOException e) {
-                    System.err.println("Could not connect to " + domain + ':' + port + ".\nReason: " + e.getMessage());
+                    logger.log(Level.WARNING, "Could not connect to " + domain + ':' + port + ". Reason: " + e.getMessage());
 
                     try {
                         Thread.sleep(5000);
@@ -58,7 +67,7 @@ public abstract class IRCSocketClient {
                     try {
                         Thread.sleep(10000);
                         if (!this.twitchReady) {
-                            System.out.println("Twitch not responding, retry login...");
+                            logger.log(Level.WARNING, "Twitch not responding, retry login...");
                             this.socket.close();
                         }
                     } catch (InterruptedException | IOException e) {
@@ -89,11 +98,13 @@ public abstract class IRCSocketClient {
 
                                 if (message.contains(":tmi.twitch.tv 001 " + this.username + " :Welcome, GLHF!")) {
                                     this.twitchReady = true;
-                                    System.out.println("Connected to " + domain + ':' + port + " !");
+                                    logger.log(Level.INFO, "Connected to " + domain + ':' + port + " !");
 
                                     while (!this.messagesQueue.isEmpty()) {
                                         this.sendMessage(this.messagesQueue.remove());
                                     }
+                                } else if (!twitchReady) {
+                                    logger.log(Level.INFO, message);
                                 } else {
                                     this.threadPool.newTask(() -> this.onSocketMessage(message));
                                 }

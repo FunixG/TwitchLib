@@ -10,7 +10,11 @@ public class TwitchScopes {
     public static final String ANALYTICS_READ_EXTENSIONS = "analytics:read:extensions";
     public static final String ANALYTICS_READ_GAMES = "analytics:read:games";
     public static final String BITS_READ = "bits:read";
+    public static final String CHAT_READ = "chat:read";
+    public static final String CHAT_EDIT = "chat:edit";
     public static final String CHANNEL_EDIT_COMMERCIAL = "channel:edit:commercial";
+    public static final String CHANNEL_MODERATE = "channel:moderate";
+    public static final String CHANNEL_EDITOR = "channel:editor";
     public static final String CHANNEL_MANAGE_BROADCAST = "channel:manage:broadcast";
     public static final String CHANNEL_MANAGE_EXTENSIONS = "channel:manage:extensions";
     public static final String CHANNEL_MANAGE_POLLS = "channel:manage:polls";
@@ -37,4 +41,5 @@ public class TwitchScopes {
     public static final String USER_READ_FOLLOWS = "user:read:follows";
     public static final String USER_READ_SUBS = "user:read:subscriptions";
     public static final String WHISPER = "whispers:edit";
+    public static final String WHISPER_READ = "whispers:read";
 }
