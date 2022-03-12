@@ -25,9 +25,9 @@ public class TwitchAuth {
     private final static String PATH_OAUTH_TOKEN = "/oauth2/token";
     private final static String PATH_OAUTH_TOKEN_VALIDATE = "/oauth2/validate";
 
-    private final String clientId;
-    private final String clientSecret;
     private final String oauthCode;
+    private transient String clientId;
+    private transient String clientSecret;
     private String accessToken;
     private String refreshToken;
     private Date expirationDate;
@@ -194,9 +194,11 @@ public class TwitchAuth {
      * @param json JsonData got from the call of toJson
      * @return twitch api class instance
      */
-    public static TwitchAuth fromJson(final String json) throws TwitchApiException {
+    public static TwitchAuth fromJson(final String json, final String clientId, final String clientSecret) throws TwitchApiException {
         final TwitchAuth twitchAuth = new Gson().fromJson(json, TwitchAuth.class);
 
+        twitchAuth.clientId = clientId;
+        twitchAuth.clientSecret = clientSecret;
         if (!twitchAuth.isValid()) {
             twitchAuth.refresh();
         }

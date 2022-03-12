@@ -27,6 +27,13 @@ import java.util.Set;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpType;
 import static fr.funixgaming.twitch.api.tools.HttpCalls.HttpJSONResponse;
 
+/**
+ * To use all of this endpoints please add theses scopes
+ * TwitchScopes.CHANNEL_MANAGE_BROADCAST
+ * TwitchScopes.CHANNEL_READ_SUBS
+ * TwitchScopes.CHANNEL_READ_CHAT_POINTS_REWARDS
+ *
+ */
 @AllArgsConstructor
 public class TwitchApi {
     public final static String DOMAIN_TWITCH_AUTH_API = "id.twitch.tv";
@@ -79,6 +86,14 @@ public class TwitchApi {
         }
     }
 
+    /**
+     * NEED SCOPES user:edit:broadcast or channel:manage:broadcast or channel_editor
+     * TwitchScopes.CHANNEL_MANAGE_BROADCAST
+     *
+     * @param channelId
+     * @param updateChannel
+     * @throws TwitchApiException
+     */
     public void updateChannelInformation(@NonNull final String channelId,
                                          @NonNull final UpdateChannel updateChannel) throws TwitchApiException {
         try {
@@ -116,6 +131,12 @@ public class TwitchApi {
         }
     }
 
+    /**
+     * required scope TwitchScopes.CHANNEL_READ_CHAT_POINTS_REWARDS
+     * @param channelId channel id
+     * @return list of rewards
+     * @throws TwitchApiException when error
+     */
     public Set<ChannelReward> getChannelCustomRewards(@NonNull final String channelId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
@@ -328,6 +349,10 @@ public class TwitchApi {
                 final JsonElement pagination = body.get("pagination");
                 String cursor = null;
 
+                if (clipsGet.isEmpty()) {
+                    return clips;
+                }
+
                 if (!pagination.isJsonNull()) {
                     cursor = pagination.getAsJsonObject().get("cursor").getAsString();
                 }
@@ -409,6 +434,14 @@ public class TwitchApi {
         }
     }
 
+    /**
+     * NEEDS SCOPE channel:read:subscriptions or channel_subscriptions
+     * TwitchScopes.CHANNEL_READ_SUBS
+     *
+     * @param streamerId streamerId
+     * @return LastSub
+     * @throws TwitchApiException error
+     */
     @Nullable
     public LastSub getStreamerLastSubAndCount(final String streamerId) throws TwitchApiException {
         try {
@@ -425,7 +458,8 @@ public class TwitchApi {
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
-                final JsonArray data = response.getBody().getAsJsonObject().get("data").getAsJsonArray();
+                final JsonObject body = response.getBody().getAsJsonObject();
+                final JsonArray data = body.get("data").getAsJsonArray();
 
                 if (data.size() > 0) {
                     final JsonObject lastSub = data.get(0).getAsJsonObject();
@@ -451,7 +485,7 @@ public class TwitchApi {
                             lastSub.get("user_id").getAsString(),
                             lastSub.get("user_name").getAsString(),
                             lastSub.get("user_login").getAsString(),
-                            lastSub.get("total").getAsInt()
+                            body.get("total").getAsInt()
                     );
                 } else {
                     return null;
@@ -465,7 +499,7 @@ public class TwitchApi {
     }
 
     @Nullable
-    public Follow getUserLastFollowerAndFollowCount(final String userId) throws TwitchApiException {
+    public Follow getUserLastFollowerAndCount(final String userId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
                 twitchAuth.refresh();
@@ -523,12 +557,11 @@ public class TwitchApi {
                     "https://" +
                             DOMAIN_TWITCH_API +
                             PATH_CHANNEL_USERS + "/follows" +
-                            "?to_id=" + streamerId + "&from_id=" + userToCheckId
+                            "?to_id=" + userToCheckId + "&from_id=" + streamerId
             );
 
             final HttpJSONResponse response = HttpCalls.performJSONRequest(url, HttpType.GET, null, twitchAuth);
             if (response.getResponseCode() == 200) {
-                System.out.println(response.getBody());
                 final JsonObject getResponse = response.getBody().getAsJsonObject();
                 final JsonArray followElem = getResponse.get("data").getAsJsonArray();
 

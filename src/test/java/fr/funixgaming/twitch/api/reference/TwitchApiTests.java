@@ -3,15 +3,14 @@ package fr.funixgaming.twitch.api.reference;
 import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.auth.TwitchAuthTestUtils;
 import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
+import fr.funixgaming.twitch.api.reference.entities.bodys.ClipSearch;
 import fr.funixgaming.twitch.api.reference.entities.bodys.UpdateChannel;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.Channel;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelEmote;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.ChannelReward;
-import fr.funixgaming.twitch.api.reference.entities.responses.channel.Stream;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.ClipCreation;
-import fr.funixgaming.twitch.api.reference.entities.responses.twitch.User;
+import fr.funixgaming.twitch.api.reference.entities.responses.channel.*;
+import fr.funixgaming.twitch.api.reference.entities.responses.twitch.*;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -196,6 +195,163 @@ public class TwitchApiTests {
             assertNotNull(clipCreation.getId());
             assertNotNull(clipCreation.getEditUrl());
         }
+    }
+
+    @Test
+    public void testGetChannelClipsNoSearch() throws TwitchApiException {
+        final Set<Clip> clips = api.getChannelClips(auth.getUserId(), null);
+
+        for (final Clip clip : clips) {
+            assertNotNull(clip.getId());
+            assertNotNull(clip.getUrl());
+            assertNotNull(clip.getEmbedUrl());
+            assertNotNull(clip.getBroadcasterId());
+            assertNotNull(clip.getBroadcasterDisplayName());
+            assertNotNull(clip.getCreatorId());
+            assertNotNull(clip.getCreatorName());
+            assertNotNull(clip.getVodId());
+            assertNotNull(clip.getGameId());
+            assertNotNull(clip.getLanguage());
+            assertNotNull(clip.getTitle());
+            assertNotNull(clip.getViews());
+            assertNotNull(clip.getCreatedAt());
+            assertNotNull(clip.getThumbnailUrl());
+            assertNotNull(clip.getDuration());
+            assertNotNull(clip.getPaginationCursor());
+        }
+    }
+
+    @Test
+    public void testGetChannelClipsSearch() throws TwitchApiException {
+        final ClipSearch clipSearch = new ClipSearch();
+        clipSearch.setStartedAtSearch(Date.from(Instant.now().minusSeconds(100000)));
+
+        final Set<Clip> clips = api.getChannelClips(auth.getUserId(), clipSearch);
+        for (final Clip clip : clips) {
+            assertNotNull(clip.getId());
+            assertNotNull(clip.getUrl());
+            assertNotNull(clip.getEmbedUrl());
+            assertNotNull(clip.getBroadcasterId());
+            assertNotNull(clip.getBroadcasterDisplayName());
+            assertNotNull(clip.getCreatorId());
+            assertNotNull(clip.getCreatorName());
+            assertNotNull(clip.getVodId());
+            assertNotNull(clip.getGameId());
+            assertNotNull(clip.getLanguage());
+            assertNotNull(clip.getTitle());
+            assertNotNull(clip.getViews());
+            assertNotNull(clip.getCreatedAt());
+            assertNotNull(clip.getThumbnailUrl());
+            assertNotNull(clip.getDuration());
+            assertNotNull(clip.getPaginationCursor());
+        }
+    }
+
+    @Test
+    public void testGetStreamVodList() throws TwitchApiException {
+        final Set<Vod> vodList = api.getStreamVodList(auth.getUserId());
+
+        for (final Vod vod : vodList) {
+            assertNotNull(vod.getId());
+            assertNotNull(vod.getStreamId());
+            assertNotNull(vod.getUserId());
+            assertNotNull(vod.getUserName());
+            assertNotNull(vod.getUserDisplayName());
+            assertNotNull(vod.getTitle());
+            assertNotNull(vod.getDescription());
+            assertNotNull(vod.getCreatedAt());
+            assertNotNull(vod.getPublishedAt());
+            assertNotNull(vod.getUrl());
+            assertNotNull(vod.getThumbnailUrl());
+            assertNotNull(vod.getViews());
+            assertNotNull(vod.getLanguage());
+            assertNotNull(vod.getDuration());
+        }
+    }
+
+    @Test
+    public void testGetStreamerLastSubAndCount() throws TwitchApiException {
+        final LastSub lastSub = api.getStreamerLastSubAndCount(auth.getUserId());
+
+        if (lastSub != null) {
+            assertNotNull(lastSub.getBroadcasterId());
+            assertNotNull(lastSub.getBroadcasterName());
+            assertNotNull(lastSub.getBroadcasterDisplayName());
+            assertNotNull(lastSub.getIsGift());
+            assertNotNull(lastSub.getSubTier());
+            assertNotNull(lastSub.getUserName());
+            assertNotNull(lastSub.getUserId());
+            assertNotNull(lastSub.getUserDisplayName());
+            assertNotNull(lastSub.getTotalBroadcasterSubs());
+
+            if (lastSub.getIsGift()) {
+                assertNotNull(lastSub.getGifterId());
+                assertNotNull(lastSub.getGifterName());
+                assertNotNull(lastSub.getGifterDisplayName());
+            }
+        }
+    }
+
+    @Test
+    public void testGetUserLastFollowAndCount() throws TwitchApiException {
+        final Follow follow = api.getUserLastFollowerAndCount(auth.getUserId());
+
+        if (follow != null) {
+            assertNotNull(follow.getFromId());
+            assertNotNull(follow.getFromName());
+            assertNotNull(follow.getFromDisplayName());
+            assertNotNull(follow.getToId());
+            assertNotNull(follow.getToName());
+            assertNotNull(follow.getToDisplayName());
+            assertNotNull(follow.getFollowedAt());
+            assertNotNull(follow.getTotalFollowers());
+        }
+    }
+
+    @Test
+    public void testFollowCheckNull() throws TwitchApiException {
+        final Set<User> zerator = api.getUsersByUserName(Set.of("ZeratoR"));
+
+        for (final User user : zerator) {
+            final Follow zeratorFollows = api.isUserFollowing(auth.getUserId(), user.getId());
+            assertNull(zeratorFollows);
+            //If this unit test fails, it means that ZeratoR the french streamer is following you buddy !
+        }
+    }
+
+    @Test
+    public void testFollowCheckValid() throws TwitchApiException {
+        final Set<User> users = api.getUsersByUserName(Set.of(USER_USERNAME_TEST, "funixbot"));
+        User funixgaming = null;
+        User funixbot = null;
+
+        for (final User user : users) {
+            if (user.getName().equalsIgnoreCase(USER_USERNAME_TEST)) {
+                funixgaming = user;
+            } else if (user.getName().equalsIgnoreCase("funixbot")) {
+                funixbot = user;
+            }
+        }
+
+        if (funixbot != null && funixgaming != null) {
+            final Follow follow = api.isUserFollowing(funixgaming.getId(), funixbot.getId());
+            assertNotNull(follow);
+        }
+    }
+
+    @Test
+    public void testGetGame() throws TwitchApiException {
+        final Game minecraft = api.getGameByName("minecraft");
+        assertNotNull(minecraft);
+        assertNotNull(minecraft.getId());
+        assertNotNull(minecraft.getName());
+        assertNotNull(minecraft.getBoxArtUrl());
+
+        final Game minecraftId = api.getGameById(minecraft.getId());
+        assertNotNull(minecraftId);
+        assertNotNull(minecraftId.getId());
+        assertNotNull(minecraftId.getName());
+        assertNotNull(minecraftId.getBoxArtUrl());
     }
 
 }
