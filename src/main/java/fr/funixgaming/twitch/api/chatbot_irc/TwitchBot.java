@@ -1,5 +1,6 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
+import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import fr.funixgaming.twitch.api.chatbot_irc.entities.*;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
@@ -22,10 +23,36 @@ public class TwitchBot extends IRCSocketClient {
      * After initialisation, the program connects to Twitch IRC service
      *
      * @param botUsername String Bot username where the app will connect to
-     * @param oauthToken String oAuth token to log the Bot to twitch (example: oauth:qsdj5476hjgvsdqjkhfdslk)
+     * @param oauthToken String oAuth token to log the Bot to twitch (example: qsdj5476hjgvsdqjkhfdslk)
+     *                   <br>Needs scopes chat:read chat:edit channel:moderate whispers:read whispers:edit channel_editor
+     *                    <br>- TwitchScopes.CHAT_EDIT
+     *                    <br>- TwitchScopes.CHAT_READ
+     *                    <br>- TwitchScopes.CHANNEL_MODERATE
+     *                    <br>- TwitchScopes.CHANNEL_EDITOR
+     *                    <br>- TwitchScopes.WHISPER_READ
+     *                    <br>- TwitchScopes.WHISPER_EDIT
      */
     public TwitchBot(final String botUsername, final String oauthToken) {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oauthToken);
+        this.twitchCommands = new TwitchCommands(this);
+    }
+
+    /**
+     * Class constructor to initialize TwitchIRC methods
+     * After initialisation, the program connects to Twitch IRC service
+     *
+     * @param botUsername String Bot username where the app will connect to
+     * @param auth auth class
+     *                   <br>Needs scopes chat:read chat:edit channel:moderate whispers:read whispers:edit channel_editor
+     *                    <br>- TwitchScopes.CHAT_EDIT
+     *                    <br>- TwitchScopes.CHAT_READ
+     *                    <br>- TwitchScopes.CHANNEL_MODERATE
+     *                    <br>- TwitchScopes.CHANNEL_EDITOR
+     *                    <br>- TwitchScopes.WHISPER_READ
+     *                    <br>- TwitchScopes.WHISPER_EDIT
+     */
+    public TwitchBot(final String botUsername, final TwitchAuth auth) {
+        super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, auth.getAccessToken());
         this.twitchCommands = new TwitchCommands(this);
     }
 
