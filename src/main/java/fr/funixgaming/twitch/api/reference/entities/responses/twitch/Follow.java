@@ -11,7 +11,7 @@ import java.util.Date;
 public class Follow extends ApiEntity {
     private final String fromId;
     private final String fromName;
-    private final String fromDiaplayName;
+    private final String fromDisplayName;
     private final String toId;
     private final String toName;
     private final String toDisplayName;

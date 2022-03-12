@@ -19,7 +19,7 @@ public class TwitchAuthTestUtils {
         final String redirectUrl = System.getenv("REDIRECT_URI");
 
         if (auth == null) {
-            final TwitchAuth twitchAuth = getFileAuth();
+            final TwitchAuth twitchAuth = getFileAuth(clientId, clientSecret);
 
             if (twitchAuth == null) {
                 auth = new TwitchAuth(
@@ -38,13 +38,13 @@ public class TwitchAuthTestUtils {
     }
 
     @Nullable
-    private static TwitchAuth getFileAuth() throws TwitchApiException {
+    private static TwitchAuth getFileAuth(final String clientId, final String clientSecret) throws TwitchApiException {
         final File authFile = getFile(false);
 
         try {
             if (authFile != null) {
                 final String data = Files.readString(authFile.toPath());
-                return TwitchAuth.fromJson(data);
+                return TwitchAuth.fromJson(data, clientId, clientSecret);
             } else {
                 return null;
             }
