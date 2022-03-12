@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TwitchApiTests {
 
-    private static final String STREAM_USERNAME_TEST = "electricallongboard";
+    private static final String STREAM_USERNAME_TEST = "solary";
     private static final String USER_USERNAME_TEST = "funixgaming";
 
     private final TwitchAuth auth;
@@ -187,7 +187,7 @@ public class TwitchApiTests {
 
     @Test
     public void testClipCreation() throws TwitchApiException {
-        final Set<Stream> streams = api.getStreamsByUserNames(Set.of("zerator"));
+        final Set<Stream> streams = api.getStreamsByUserNames(Set.of(STREAM_USERNAME_TEST));
 
         for (final Stream stream : streams) {
             final ClipCreation clipCreation = api.createClip(stream.getUserId());

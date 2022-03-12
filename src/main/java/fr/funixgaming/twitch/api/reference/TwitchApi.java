@@ -281,6 +281,14 @@ public class TwitchApi {
         }
     }
 
+    /**
+     * Required scope clips:edit
+     * TwitchScopes.EDIT_CLIPS
+     *
+     * @param channelId channel id
+     * @return clip
+     * @throws TwitchApiException error
+     */
     public ClipCreation createClip(@NonNull final String channelId) throws TwitchApiException {
         try {
             if (twitchAuth.isUsable() && !twitchAuth.isValid()) {
