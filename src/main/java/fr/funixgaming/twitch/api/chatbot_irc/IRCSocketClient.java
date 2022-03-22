@@ -8,6 +8,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.SocketException;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.logging.Level;
@@ -18,16 +19,16 @@ public abstract class IRCSocketClient {
     private final String username;
     private final String oauthToken;
 
-    private final Queue<String> messagesQueue = new PriorityQueue<>();
+    private final Queue<String> messagesQueue = new LinkedList<>();
     private final TwitchThreadPool threadPool;
     private final Logger logger;
 
-    private boolean isRunning = true;
-    private boolean twitchReady = false;
+    private volatile boolean isRunning = true;
+    private volatile boolean twitchReady = false;
 
-    private SSLSocket socket;
-    private BufferedInputStream reader;
-    private PrintWriter writer;
+    private volatile SSLSocket socket;
+    private volatile BufferedInputStream reader;
+    private volatile PrintWriter writer;
 
     protected IRCSocketClient(final String domain, final int port, final String username, final String oauthToken) {
         this.threadPool = new TwitchThreadPool(6);
@@ -41,17 +42,49 @@ public abstract class IRCSocketClient {
         }
 
         this.start(domain, port);
+        this.messageTask();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::closeConnection));
     }
+
+    public boolean isConnected() {
+        return this.isRunning() && this.twitchReady && this.socket.isConnected();
+    }
+
+    private boolean isRunning() {
+        return this.isRunning && this.socket != null && !this.socket.isClosed();
+    }
+
+    public void closeConnection() {
+        this.isRunning = false;
+        this.twitchReady = false;
+
+        try {
+            if (this.isConnected()) {
+                this.logger.log(Level.INFO, "Closing Twitch IRC...");
+                this.socket.close();
+                this.logger.log(Level.INFO, "TwitchIRC closed.");
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    protected void sendMessage(final String message) {
+        this.messagesQueue.add(message);
+    }
+
+    protected abstract void onSocketMessage(final String message);
 
     private void start(final String domain, final int port) {
         new Thread(() -> {
             while (this.isRunning) {
+                this.twitchReady = false;
+
                 try {
                     logger.log(Level.INFO, "Connecting to " + domain + ':' + port + "...");
 
                     final SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                     this.socket = (SSLSocket) factory.createSocket(domain, port);
-
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "Could not connect to " + domain + ':' + port + ". Reason: " + e.getMessage());
 
@@ -63,7 +96,7 @@ public abstract class IRCSocketClient {
                     continue;
                 }
 
-                final Thread checkLoggedThread = new Thread(() -> {
+                new Thread(() -> {
                     try {
                         Thread.sleep(10000);
                         if (!this.twitchReady) {
@@ -73,9 +106,7 @@ public abstract class IRCSocketClient {
                     } catch (InterruptedException | IOException e) {
                         e.printStackTrace();
                     }
-                });
-                checkLoggedThread.setName("CheckLoggedThread");
-                checkLoggedThread.start();
+                }).start();
 
                 try {
                     reader = new BufferedInputStream(this.socket.getInputStream());
@@ -99,20 +130,16 @@ public abstract class IRCSocketClient {
                                 if (message.contains(":tmi.twitch.tv 001 " + this.username + " :Welcome, GLHF!")) {
                                     this.twitchReady = true;
                                     logger.log(Level.INFO, "Connected to " + domain + ':' + port + " !");
-
-                                    while (!this.messagesQueue.isEmpty()) {
-                                        this.sendMessage(this.messagesQueue.remove());
-                                    }
                                 } else if (!twitchReady) {
                                     logger.log(Level.INFO, message);
                                 } else {
                                     this.threadPool.newTask(() -> this.onSocketMessage(message));
                                 }
-
                             }
                         } catch (IOException e) {
                             if (!this.socket.isClosed())
                                 e.printStackTrace();
+                            this.twitchReady = false;
                         }
                     }
 
@@ -130,9 +157,10 @@ public abstract class IRCSocketClient {
                     } catch (IOException exception) {
                         exception.printStackTrace();
                     }
+
+                    this.twitchReady = false;
                 }
 
-                this.twitchReady = false;
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
@@ -142,30 +170,30 @@ public abstract class IRCSocketClient {
         }).start();
     }
 
-    protected void sendMessage(final String message) {
-        this.threadPool.newTask(() -> {
-            if (this.socket != null && this.socket.isConnected() && this.twitchReady) {
-                writer.println(message);
-                writer.flush();
-            } else {
-                this.messagesQueue.add(message);
+    private void messageTask() {
+        final Thread messageThread = new Thread(() -> {
+            try {
+                while (this.isRunning) {
+                    if (this.messagesQueue.size() > 0 && this.twitchReady) {
+                        final String message = this.messagesQueue.poll();
+
+                        if (message != null) {
+                            writer.println(message);
+                            writer.flush();
+                            Thread.sleep(500);
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
+
+        messageThread.setName("IRC-Message-Thread-Twitch");
+        messageThread.start();
     }
 
-    public boolean isRunning() {
-        return this.isRunning && this.socket != null && !this.socket.isClosed() && this.socket.isConnected();
+    public Logger getLogger() {
+        return this.logger;
     }
-
-    public void closeConnection() {
-        this.isRunning = false;
-        try {
-            this.socket.close();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-    }
-
-    protected abstract void onSocketMessage(final String message);
-
 }

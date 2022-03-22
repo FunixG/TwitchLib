@@ -5,8 +5,11 @@ import fr.funixgaming.twitch.api.chatbot_irc.entities.*;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.TagParser;
+import fr.funixgaming.twitch.api.exceptions.TwitchIRCException;
 import lombok.Getter;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,9 +54,18 @@ public class TwitchBot extends IRCSocketClient {
      *                    <br>- TwitchScopes.WHISPER_READ
      *                    <br>- TwitchScopes.WHISPER_EDIT
      */
-    public TwitchBot(final String botUsername, final TwitchAuth auth) {
+    public TwitchBot(final String botUsername, final TwitchAuth auth) throws TwitchIRCException {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, auth.getAccessToken());
         this.twitchCommands = new TwitchCommands(this);
+
+        final Instant startTime = Instant.now();
+        while (!super.isConnected()) {
+            final Instant now = Instant.now();
+
+            if (now.isAfter(startTime.plus(1, ChronoUnit.MINUTES))) {
+                throw new TwitchIRCException("TimeOut of Twwitch IRC login. Check your credentials or console for informations.");
+            }
+        }
     }
 
     /**
