@@ -7,6 +7,10 @@
     <groupId>fr.funixgaming.twitch.api</groupId>
     <artifactId>TwitchAPI</artifactId>
     <version>1.1.1</version>
+    <packaging>maven-plugin</packaging>
+
+    <name>TwitchAPI</name>
+    <description>Package used to create IRC chatbot on twitch and use the Twitch api</description>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
