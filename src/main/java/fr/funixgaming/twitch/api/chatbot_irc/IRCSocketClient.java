@@ -1,5 +1,7 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
+import fr.funixgaming.twitch.api.auth.TwitchAuth;
+import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
 import fr.funixgaming.twitch.api.tools.TwitchThreadPool;
 
 import javax.net.ssl.SSLSocket;
@@ -17,11 +19,11 @@ import java.util.logging.Logger;
 public abstract class IRCSocketClient {
 
     private final String username;
-    private final String oauthToken;
 
     private final Queue<String> messagesQueue = new LinkedList<>();
     private final TwitchThreadPool threadPool;
     private final Logger logger;
+    private final TwitchAuth auth;
 
     private volatile boolean isRunning = true;
     private volatile boolean twitchReady = false;
@@ -30,16 +32,11 @@ public abstract class IRCSocketClient {
     private volatile BufferedInputStream reader;
     private volatile PrintWriter writer;
 
-    protected IRCSocketClient(final String domain, final int port, final String username, final String oauthToken) {
+    protected IRCSocketClient(final String domain, final int port, final String username, final TwitchAuth auth) {
         this.threadPool = new TwitchThreadPool(6);
         this.username = username.toLowerCase();
         this.logger = Logger.getLogger("TwitchIRC");
-
-        if (oauthToken.startsWith("oauth:")) {
-            this.oauthToken = oauthToken;
-        } else {
-            this.oauthToken = "oauth:" + oauthToken;
-        }
+        this.auth = auth;
 
         this.start(domain, port);
         this.messageTask();
@@ -112,7 +109,12 @@ public abstract class IRCSocketClient {
                     reader = new BufferedInputStream(this.socket.getInputStream());
                     writer = new PrintWriter(this.socket.getOutputStream());
 
-                    this.writer.println("PASS " + this.oauthToken);
+                    if (!this.auth.isValid()) {
+                        this.auth.refresh();
+                    }
+                    this.auth.isUsable();
+
+                    this.writer.println("PASS oauth:" + this.auth.getAccessToken());
                     this.writer.println("NICK " + this.username);
                     this.writer.println("CAP REQ :twitch.tv/tags");
                     this.writer.println("CAP REQ :twitch.tv/commands");
@@ -143,7 +145,7 @@ public abstract class IRCSocketClient {
                         }
                     }
 
-                } catch (IOException e) {
+                } catch (IOException | TwitchApiException e) {
                     e.printStackTrace();
                 } finally {
                     try {
