@@ -13,10 +13,10 @@ public class TwitchAuthTestUtils {
     private static TwitchAuth auth = null;
 
     public static TwitchAuth getAuth() throws TwitchApiException {
-        final String clientId = System.getenv("CLIENT_ID");
-        final String clientSecret = System.getenv("CLIENT_SECRET");
-        final String oauthCode = System.getenv("OAUTH_CODE");
-        final String redirectUrl = System.getenv("REDIRECT_URI");
+        final String clientId = System.getenv("TWITCH_CLIENT_ID");
+        final String clientSecret = System.getenv("TWITCH_CLIENT_SECRET");
+        final String oauthCode = System.getenv("TWITCH_OAUTH_CODE");
+        final String redirectUrl = System.getenv("TWITCH_REDIRECT_URI");
 
         if (auth == null) {
             final TwitchAuth twitchAuth = getFileAuth(clientId, clientSecret);

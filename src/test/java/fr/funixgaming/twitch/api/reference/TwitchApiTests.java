@@ -139,32 +139,40 @@ public class TwitchApiTests {
 
     @Test
     public void testGetChannelRewards() throws TwitchApiException {
-        final Set<User> users = api.getUsersByUserName(Set.of(auth.getUserName()));
+        try {
+            final Set<User> users = api.getUsersByUserName(Set.of(auth.getUserName()));
 
-        for (final User user : users) {
-            final Set<ChannelReward> rewards = api.getChannelCustomRewards(user.getId());
+            for (final User user : users) {
+                final Set<ChannelReward> rewards = api.getChannelCustomRewards(user.getId());
 
-            if (rewards.isEmpty()) {
-                fail("the channel has no custom rewards " + user.getDisplayName());
-            } else {
-                for (final ChannelReward reward : rewards) {
-                    assertNotNull(reward.getId());
-                    assertNotNull(reward.getBroadcasterId());
-                    assertNotNull(reward.getBroadcasterName());
-                    assertNotNull(reward.getBroadcasterDisplayName());
-                    assertNotNull(reward.getTitle());
-                    assertNotNull(reward.getPrompt());
-                    assertNotNull(reward.getDefaultImage());
-                    assertNotNull(reward.getBackgroundColor());
-                    assertNotNull(reward.getCost());
-                    assertNotNull(reward.getGlobalCoolDown());
-                    assertNotNull(reward.getIsEnabled());
-                    assertNotNull(reward.getIsInStock());
-                    assertNotNull(reward.getIsUserInputRequired());
-                    assertNotNull(reward.getMaxUsagePerStream());
-                    assertNotNull(reward.getMaxUsagePerStreamUser());
-                    assertNotNull(reward.getUsagesCurrentStream());
+                if (rewards.isEmpty()) {
+                    fail("the channel has no custom rewards " + user.getDisplayName());
+                } else {
+                    for (final ChannelReward reward : rewards) {
+                        assertNotNull(reward.getId());
+                        assertNotNull(reward.getBroadcasterId());
+                        assertNotNull(reward.getBroadcasterName());
+                        assertNotNull(reward.getBroadcasterDisplayName());
+                        assertNotNull(reward.getTitle());
+                        assertNotNull(reward.getPrompt());
+                        assertNotNull(reward.getDefaultImage());
+                        assertNotNull(reward.getBackgroundColor());
+                        assertNotNull(reward.getCost());
+                        assertNotNull(reward.getGlobalCoolDown());
+                        assertNotNull(reward.getIsEnabled());
+                        assertNotNull(reward.getIsInStock());
+                        assertNotNull(reward.getIsUserInputRequired());
+                        assertNotNull(reward.getMaxUsagePerStream());
+                        assertNotNull(reward.getMaxUsagePerStreamUser());
+                        assertNotNull(reward.getUsagesCurrentStream());
+                    }
                 }
+            }
+        } catch (TwitchApiException e) {
+            if (e.getCause().getMessage().contains("channel points are not available for the broadcaster")) {
+                System.err.println("The channel specified on auth does not have channel points the test is not valid.");
+            } else {
+                throw e;
             }
         }
     }
