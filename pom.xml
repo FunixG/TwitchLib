@@ -5,9 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.funixgaming.twitch.api</groupId>
-    <artifactId>TwitchAPI</artifactId>
+    <artifactId>twitch-api</artifactId>
     <version>1.1.1</version>
-
     <name>TwitchAPI</name>
     <description>Package used to create IRC chatbot on twitch and use the Twitch api</description>
 
@@ -22,6 +21,14 @@
         <unitTestBuild.version>2.22.2</unitTestBuild.version>
         <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub FunixG Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/FunixG/TwitchLib</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
