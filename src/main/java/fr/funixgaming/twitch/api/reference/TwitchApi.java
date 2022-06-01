@@ -666,7 +666,6 @@ public class TwitchApi {
                             data.get("login").getAsString(),
                             data.get("offline_image_url").getAsString(),
                             data.get("profile_image_url").getAsString(),
-                            data.get("view_count").getAsInt(),
                             Date.from(Instant.parse(data.get("created_at").getAsString()))
                     ));
                 }

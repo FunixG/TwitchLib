@@ -6,7 +6,7 @@
 
     <groupId>fr.funixgaming.twitch.api</groupId>
     <artifactId>twitch-api</artifactId>
-    <version>1.1.1</version>
+    <version>1.2.0</version>
 
     <name>TwitchAPI</name>
     <description>Package used to create IRC chatbot on twitch and use the Twitch api</description>
@@ -51,10 +51,15 @@
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <gson.version>2.9.0</gson.version>
-        <lombook.version>1.18.22</lombook.version>
-        <unitTest.version>5.8.2</unitTest.version>
-        <unitTestBuild.version>2.22.2</unitTestBuild.version>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <lombook.version>1.18.24</lombook.version>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+        <unitTest.version>5.9.0-M1</unitTest.version>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+        <unitTestBuild.version>3.0.0-M6</unitTestBuild.version>
+        <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations-->
         <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
     </properties>
 

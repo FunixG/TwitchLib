@@ -23,7 +23,6 @@ public class User extends ApiEntity {
     private final String name;
     private final String offlineImageUrl;
     private final String profileImageUrl;
-    private final Integer views;
     private final Date createdAt;
 
     @Override

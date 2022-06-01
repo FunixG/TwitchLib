@@ -16,7 +16,7 @@ public class TwitchAuthTestUtils {
         final String clientId = System.getenv("TWITCH_CLIENT_ID");
         final String clientSecret = System.getenv("TWITCH_CLIENT_SECRET");
         final String oauthCode = System.getenv("TWITCH_OAUTH_CODE");
-        final String redirectUrl = System.getenv("TWITCH_REDIRECT_URI");
+        final String redirectUrl = System.getenv("TWITCH_REDIRECT_URL");
 
         if (auth == null) {
             final TwitchAuth twitchAuth = getFileAuth(clientId, clientSecret);
