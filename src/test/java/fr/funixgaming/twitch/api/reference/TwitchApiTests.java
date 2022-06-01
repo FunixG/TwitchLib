@@ -113,7 +113,6 @@ public class TwitchApiTests {
                 assertNotNull(user.getName());
                 assertNotNull(user.getDisplayName());
                 assertNotNull(user.getOfflineImageUrl());
-                assertNotNull(user.getViews());
                 assertNotNull(user.getProfileImageUrl());
 
                 final Set<User> idList = api.getUsersById(Set.of(user.getId()));
@@ -129,7 +128,6 @@ public class TwitchApiTests {
                         assertNotNull(id.getName());
                         assertNotNull(id.getDisplayName());
                         assertNotNull(id.getOfflineImageUrl());
-                        assertNotNull(id.getViews());
                         assertNotNull(id.getProfileImageUrl());
                     }
                 }
