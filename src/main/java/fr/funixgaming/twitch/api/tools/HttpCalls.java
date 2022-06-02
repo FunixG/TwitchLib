@@ -69,10 +69,34 @@ public class HttpCalls {
         }
     }
 
+    public static HttpJSONResponse performFormRequest(final URI uri,
+                                                      final HttpType httpType,
+                                                      String body,
+                                                      final TwitchAuth twitchAuth) throws IOException {
+        final HttpRequest.Builder requestBuilder = getHttpBuilder(body, uri, httpType, twitchAuth);
+
+        requestBuilder.setHeader("Content-Type", "application/x-www-form-urlencoded");
+        requestBuilder.setHeader("Accept", "application/json");
+
+        return sendHttpClientRequest(requestBuilder);
+    }
+
     public static HttpJSONResponse performJSONRequest(final URI uri,
                                                       final HttpType httpType,
                                                       String body,
                                                       final TwitchAuth twitchAuth) throws IOException {
+        final HttpRequest.Builder requestBuilder = getHttpBuilder(body, uri, httpType, twitchAuth);
+
+        requestBuilder.setHeader("Content-Type", "application/json");
+        requestBuilder.setHeader("Accept", "application/json");
+
+        return sendHttpClientRequest(requestBuilder);
+    }
+
+    private static HttpRequest.Builder getHttpBuilder(String body,
+                                                      final URI uri,
+                                                      final HttpType httpType,
+                                                      final TwitchAuth twitchAuth) {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
         if (body == null) {
@@ -95,10 +119,7 @@ public class HttpCalls {
             requestBuilder.setHeader("Authorization", "Bearer " + twitchAuth.getAccessToken());
             requestBuilder.setHeader("Client-Id", twitchAuth.getClientId());
         }
-        requestBuilder.setHeader("Content-Type", "application/json");
-        requestBuilder.setHeader("Accept", "application/json");
-
-        return sendHttpClientRequest(requestBuilder);
+        return requestBuilder;
     }
 
     private static HttpJSONResponse sendHttpClientRequest(HttpRequest.Builder requestBuilder) throws IOException {
