@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TwitchAuthTestUtils {
 
@@ -44,6 +46,7 @@ public class TwitchAuthTestUtils {
                     );
                 }
             } else {
+                Logger.getGlobal().log(Level.INFO, "Loading file twitch credentials.");
                 auth = twitchAuth;
             }
         }
