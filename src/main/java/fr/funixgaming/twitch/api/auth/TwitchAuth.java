@@ -84,15 +84,14 @@ public class TwitchAuth {
         this.oauthCode = oauthCode;
 
         try {
-            final HttpCalls.HttpJSONResponse response = HttpCalls.performJSONRequest(
-                    URI.create("https://" + TwitchApi.DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN +
-                            "?client_id=" + this.clientId +
+            final HttpCalls.HttpJSONResponse response = HttpCalls.performFormRequest(
+                    URI.create("https://" + TwitchApi.DOMAIN_TWITCH_AUTH_API + PATH_OAUTH_TOKEN),
+                    HttpType.POST,
+                    "client_id=" + this.clientId +
                             "&client_secret=" + this.clientSecret +
                             "&code=" + this.oauthCode +
                             "&grant_type=authorization_code" +
-                            "&redirect_uri=" + redirectUrl),
-                    HttpType.POST,
-                    null,
+                            "&redirect_uri=" + redirectUrl,
                     null
             );
 
