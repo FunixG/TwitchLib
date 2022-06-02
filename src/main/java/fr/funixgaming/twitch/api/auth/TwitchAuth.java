@@ -104,7 +104,7 @@ public class TwitchAuth {
                 this.expirationDate = Date.from(Instant.now().plusSeconds(data.get("expires_in").getAsInt()));
                 isUsable();
             } else {
-                throw new IOException("The server returned an error. " + response.getResponseCode() + " " + response.getBody());
+                throw new IOException(String.format("The server returned an error. %s %s", response.getResponseCode(), response.getBody()));
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occured when creating tokens.", e);
@@ -166,7 +166,7 @@ public class TwitchAuth {
                 this.refreshToken = body.get("refresh_token").getAsString();
                 this.expirationDate = Date.from(Instant.now().plusSeconds(body.get("expires_in").getAsInt()));
             } else {
-                throw new IOException("Error while fetching token on Twitch. Error code : " + response.getResponseCode() + " Body " + response.getBody());
+                throw new IOException(String.format("Error while fetching token on Twitch. Error code : %s Body %s", response.getResponseCode(), response.getBody()));
             }
         } catch (IOException e) {
             throw new TwitchApiException("An error occurred while refreshing tokens.", e);
