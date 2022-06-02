@@ -34,6 +34,13 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
 
+      - name: Cache data folder
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: data
+          key: twitch
+
       - name: Publish to the Maven Central Repository
         run: mvn --batch-mode clean deploy
         env:
