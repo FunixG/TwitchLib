@@ -68,7 +68,13 @@ public class TwitchAuthTestUtils {
 
     @Nullable
     private static File getFile(boolean createIfAbsent) {
-        final File authFile = new File("twitchAuth.json");
+        final File data = new File("data");
+        final File authFile = new File(data,"twitchAuth.json");
+
+        if (!data.exists() && !data.mkdir()) {
+            new IOException("Impossible de créer le data folder.").printStackTrace();
+            return null;
+        }
 
         if (authFile.exists()) {
             return authFile;
