@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.util.Date;
 
 public class TwitchAuthTestUtils {
 
@@ -17,17 +19,30 @@ public class TwitchAuthTestUtils {
         final String clientSecret = System.getenv("TWITCH_CLIENT_SECRET");
         final String oauthCode = System.getenv("TWITCH_OAUTH_CODE");
         final String redirectUrl = System.getenv("TWITCH_REDIRECT_URL");
+        final String accessToken = System.getenv("TWITCH_ACCESS_TOKEN");
+        final String refreshToken = System.getenv("TWITCH_REFRESH_TOKEN");
 
         if (auth == null) {
             final TwitchAuth twitchAuth = getFileAuth(clientId, clientSecret);
 
             if (twitchAuth == null) {
-                auth = new TwitchAuth(
-                        clientId,
-                        clientSecret,
-                        oauthCode,
-                        redirectUrl
-                );
+                if (accessToken != null && refreshToken != null) {
+                    auth = new TwitchAuth(
+                            clientId,
+                            clientSecret,
+                            oauthCode,
+                            accessToken,
+                            refreshToken,
+                            Date.from(Instant.now())
+                    );
+                } else {
+                    auth = new TwitchAuth(
+                            clientId,
+                            clientSecret,
+                            oauthCode,
+                            redirectUrl
+                    );
+                }
             } else {
                 auth = twitchAuth;
             }
