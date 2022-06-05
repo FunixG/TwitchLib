@@ -50,5 +50,3 @@ jobs:
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_OAUTH_CODE: ${{ secrets.TWITCH_OAUTH_CODE2 }}
           TWITCH_REDIRECT_URL: ${{ secrets.TWITCH_REDIRECT_URL }}
-          TWITCH_ACCESS_TOKEN: ${{ secrets.TWITCH_ACCESS_TOKEN2 }}
-          TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN2 }}
