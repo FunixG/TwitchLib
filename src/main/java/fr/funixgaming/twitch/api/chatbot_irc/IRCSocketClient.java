@@ -182,9 +182,10 @@ public abstract class IRCSocketClient {
                         if (message != null) {
                             writer.println(message);
                             writer.flush();
-                            Thread.sleep(500);
                         }
                     }
+
+                    Thread.sleep(500);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
