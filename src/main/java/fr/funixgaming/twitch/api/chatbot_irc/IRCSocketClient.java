@@ -73,7 +73,7 @@ public abstract class IRCSocketClient {
     protected abstract void onSocketMessage(final String message);
 
     private void start(final String domain, final int port) {
-        new Thread(() -> {
+        final Thread botThread = new Thread(() -> {
             while (this.isRunning) {
                 this.twitchReady = false;
 
@@ -93,7 +93,7 @@ public abstract class IRCSocketClient {
                     continue;
                 }
 
-                new Thread(() -> {
+                final Thread checkLogin = new Thread(() -> {
                     try {
                         Thread.sleep(10000);
                         if (!this.twitchReady) {
@@ -103,7 +103,10 @@ public abstract class IRCSocketClient {
                     } catch (InterruptedException | IOException e) {
                         e.printStackTrace();
                     }
-                }).start();
+                });
+                checkLogin.setName("CheckLogin Thread");
+                checkLogin.start();
+
 
                 try {
                     reader = new BufferedInputStream(this.socket.getInputStream());
@@ -169,7 +172,9 @@ public abstract class IRCSocketClient {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        botThread.setName("TwitchBot Thread");
+        botThread.start();
     }
 
     private void messageTask() {

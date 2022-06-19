@@ -6,6 +6,7 @@ import fr.funixgaming.twitch.api.auth.TwitchAuth;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -69,9 +70,9 @@ public class HttpCalls {
         }
     }
 
-    public static HttpJSONResponse performFormRequest(final URI uri,
-                                                      final HttpType httpType,
-                                                      String body,
+    public static HttpJSONResponse performFormRequest(@NonNull final URI uri,
+                                                      @NonNull final HttpType httpType,
+                                                      @Nullable String body,
                                                       final TwitchAuth twitchAuth) throws IOException {
         final HttpRequest.Builder requestBuilder = getHttpBuilder(body, uri, httpType, twitchAuth);
 
@@ -81,10 +82,10 @@ public class HttpCalls {
         return sendHttpClientRequest(requestBuilder);
     }
 
-    public static HttpJSONResponse performJSONRequest(final URI uri,
-                                                      final HttpType httpType,
-                                                      String body,
-                                                      final TwitchAuth twitchAuth) throws IOException {
+    public static HttpJSONResponse performJSONRequest(@NonNull final URI uri,
+                                                      @NonNull final HttpType httpType,
+                                                      @Nullable String body,
+                                                      @Nullable final TwitchAuth twitchAuth) throws IOException {
         final HttpRequest.Builder requestBuilder = getHttpBuilder(body, uri, httpType, twitchAuth);
 
         requestBuilder.setHeader("Content-Type", "application/json");
@@ -93,10 +94,10 @@ public class HttpCalls {
         return sendHttpClientRequest(requestBuilder);
     }
 
-    private static HttpRequest.Builder getHttpBuilder(String body,
-                                                      final URI uri,
-                                                      final HttpType httpType,
-                                                      final TwitchAuth twitchAuth) {
+    private static HttpRequest.Builder getHttpBuilder(@Nullable String body,
+                                                      @NonNull final URI uri,
+                                                      @NonNull final HttpType httpType,
+                                                      @Nullable final TwitchAuth twitchAuth) {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
         if (body == null) {
@@ -104,17 +105,13 @@ public class HttpCalls {
         }
 
         requestBuilder.uri(uri);
+
         switch (httpType) {
-            case GET:
-                requestBuilder.GET();
-                break;
-            case POST:
-                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
-                break;
-            case PATCH:
-                requestBuilder.method(HttpType.PATCH.name(), HttpRequest.BodyPublishers.ofString(body));
-                break;
+            case GET -> requestBuilder.GET();
+            case POST -> requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+            case PATCH -> requestBuilder.method(HttpType.PATCH.name(), HttpRequest.BodyPublishers.ofString(body));
         }
+
         if (twitchAuth != null) {
             requestBuilder.setHeader("Authorization", "Bearer " + twitchAuth.getAccessToken());
             requestBuilder.setHeader("Client-Id", twitchAuth.getClientId());
