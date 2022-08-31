@@ -8,10 +8,12 @@ import fr.funixgaming.twitch.api.chatbot_irc.parsers.TagParser;
 import fr.funixgaming.twitch.api.exceptions.TwitchIRCException;
 import lombok.Getter;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class TwitchBot extends IRCSocketClient {
 
@@ -54,14 +56,9 @@ public class TwitchBot extends IRCSocketClient {
      * @param channelsName Twitch channel name. Example FunixGaming
      */
     public void joinChannel(final String ...channelsName) {
-        final StringBuilder stringBuilder = new StringBuilder();
-
         for (final String channel : channelsName) {
-            stringBuilder.append("JOIN #");
-            stringBuilder.append(channel);
-            stringBuilder.append('\n');
+            this.joinChannel(channel);
         }
-        super.sendMessage(stringBuilder.toString());
     }
 
     /**
@@ -69,14 +66,9 @@ public class TwitchBot extends IRCSocketClient {
      * @param channelsName Twitch channel name. Example FunixGaming
      */
     public void leaveChannel(final String ...channelsName) {
-        final StringBuilder stringBuilder = new StringBuilder();
-
         for (final String channel : channelsName) {
-            stringBuilder.append("PART #");
-            stringBuilder.append(channel);
-            stringBuilder.append('\n');
+            this.leaveChannel(channel);
         }
-        super.sendMessage(stringBuilder.toString());
     }
 
     /**
@@ -102,38 +94,35 @@ public class TwitchBot extends IRCSocketClient {
 
     @Override
     protected void onSocketMessage(final String message) {
-        if (message.equals("PING :tmi.twitch.tv\r\n")) {
-            super.sendMessage("PONG :tmi.twitch.tv");
-        } else {
-            for (final String twitchData : message.split("\r\n")) {
-                final TagParser parser = new TagParser(twitchData);
-
-                if (parser.getTwitchTag() == null)
-                    continue;
+        try {
+            if (message.startsWith("PING :tmi.twitch.tv")) {
+                super.sendUrgentMessage("PONG :tmi.twitch.tv");
+            } else if (message.startsWith(":tmi.twitch.tv RECONNECT")) {
+                super.getLogger().log(Level.INFO, "RECONNECT Twitch state received, now reconnecting...");
+                super.socket.close();
+            } else {
+                final TagParser parser = new TagParser(message);
+                if (parser.getTwitchTag() == null) {
+                    return;
+                }
 
                 for (final TwitchEvents evtInstance : this.twitchEvents) {
                     switch (parser.getTwitchTag()) {
-                        case CLEARCHAT:
-                            evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
-                            break;
-                        case CLEARMSG:
-                            evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));
-                            break;
-                        case PRIVMSG:
-                            evtInstance.onUserChat(new UserChatEvent(parser, this));
-                            break;
-                        case ROOMSTATE:
-                            evtInstance.onRoomStateChange(new RoomStateChangeEvent(this, parser));
-                            break;
-                        case USERNOTICE:
-                            this.handleUserNoticeEvent(evtInstance, parser);
-                            break;
-                        case HOSTTARGET:
-                            evtInstance.onChannelHost(new HostChannelEvent(parser, this));
-                            break;
+                        case CLEARCHAT -> evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
+                        case CLEARMSG -> evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));
+                        case PRIVMSG -> evtInstance.onUserChat(new UserChatEvent(parser, this));
+                        case ROOMSTATE -> evtInstance.onRoomStateChange(new RoomStateChangeEvent(this, parser));
+                        case USERNOTICE -> handleUserNoticeEvent(evtInstance, parser);
+                        case HOSTTARGET -> evtInstance.onChannelHost(new HostChannelEvent(parser, this));
                     }
                 }
             }
+        } catch (IOException e) {
+            super.getLogger().log(Level.WARNING,
+                    "Error while reading message from Twitch IRC.\n" +
+                            "MessageReceived: " + message + "\n" +
+                            "Exception: " + e.getMessage()
+            );
         }
     }
 
