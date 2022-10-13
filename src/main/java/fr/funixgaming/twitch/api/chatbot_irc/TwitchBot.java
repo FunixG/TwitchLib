@@ -95,8 +95,12 @@ public class TwitchBot extends IRCSocketClient {
     @Override
     protected void onSocketMessage(final String message) {
         try {
-            if (message.startsWith("PING :tmi.twitch.tv")) {
-                super.sendUrgentMessage("PONG :tmi.twitch.tv");
+            if (message.startsWith("PING")) {
+                final String[] split = message.split(" ");
+
+                if (split.length == 2) {
+                    super.sendMessage("PONG " + split[1]);
+                }
             } else if (message.startsWith(":tmi.twitch.tv RECONNECT")) {
                 super.getLogger().log(Level.INFO, "RECONNECT Twitch state received, now reconnecting...");
                 super.socket.close();

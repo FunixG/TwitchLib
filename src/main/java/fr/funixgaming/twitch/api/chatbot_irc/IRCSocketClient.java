@@ -7,6 +7,7 @@ import fr.funixgaming.twitch.api.tools.TwitchThreadPool;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -185,13 +186,6 @@ public abstract class IRCSocketClient {
 
         messageThread.setName("IRC-TwitchBot Message-Thread");
         messageThread.start();
-    }
-
-    protected void sendUrgentMessage(final String message) {
-        if (this.writer != null) {
-            this.writer.println(message);
-            this.writer.flush();
-        }
     }
 
     private void cleanMemory() {
