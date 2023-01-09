@@ -1,14 +1,17 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.auth.TwitchAuth;
-import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
 import fr.funixgaming.twitch.api.tools.TwitchThreadPool;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import java.io.*;
-import java.time.Instant;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +24,7 @@ public abstract class IRCSocketClient {
 
     private final TwitchThreadPool threadPool;
     private final Logger logger;
-    private final TwitchAuth auth;
+    private final String oAuthCode;
     private final String domain;
     private final int port;
 
@@ -32,11 +35,11 @@ public abstract class IRCSocketClient {
     private volatile BufferedReader reader = null;
     private volatile PrintWriter writer = null;
 
-    protected IRCSocketClient(final String domain, final int port, final String username, final TwitchAuth auth) {
+    protected IRCSocketClient(final String domain, final int port, final String username, final String oAuthCode) {
         this.threadPool = new TwitchThreadPool(6);
         this.username = username.toLowerCase();
         this.logger = Logger.getLogger("TwitchIRC");
-        this.auth = auth;
+        this.oAuthCode = oAuthCode;
         this.domain = domain;
         this.port = port;
 
@@ -65,7 +68,7 @@ public abstract class IRCSocketClient {
                         worker();
                     }
 
-                } catch (IOException | InterruptedException | TwitchApiException e) {
+                } catch (IOException | InterruptedException e) {
                     logger.log(Level.SEVERE, "Error while initializing socket. Exception: " + e.getMessage());
                 } finally {
                     this.twitchReady = false;
@@ -117,13 +120,8 @@ public abstract class IRCSocketClient {
         return true;
     }
 
-    private void initIrcConnection() throws TwitchApiException {
-        if (!this.auth.isValid()) {
-            this.auth.refresh();
-        }
-        this.auth.isUsable();
-
-        this.writer.println("PASS oauth:" + this.auth.getAccessToken());
+    private void initIrcConnection() {
+        this.writer.println("PASS oauth:" + this.oAuthCode);
         this.writer.println("NICK " + this.username);
         this.writer.println("CAP REQ :twitch.tv/tags");
         this.writer.println("CAP REQ :twitch.tv/commands");
@@ -177,7 +175,7 @@ public abstract class IRCSocketClient {
                         writer.flush();
                     }
 
-                    Thread.sleep(500);
+                    Thread.sleep(150);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
