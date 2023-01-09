@@ -1,9 +1,5 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.auth.TwitchAuth;
-import fr.funixgaming.twitch.api.auth.TwitchAuthTestUtils;
-import fr.funixgaming.twitch.api.exceptions.TwitchApiException;
-import fr.funixgaming.twitch.api.exceptions.TwitchIRCException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +9,7 @@ import java.util.UUID;
 @Setter
 class TestBot {
     private String botUsername;
-    private TwitchAuth twitchAuth;
+    private String twitchAuth;
 
     private void startBot() {
         final String channel = "funixbot";
@@ -37,11 +33,11 @@ class TestBot {
         botThread.start();
     }
 
-    public static void main(String[] args) throws TwitchApiException {
+    public static void main(String[] args) {
         final TestBot main = new TestBot();
 
         main.setBotUsername("testfunix");
-        main.twitchAuth = TwitchAuthTestUtils.getAuth();
+        main.twitchAuth = System.getenv("BOT_TOKEN");
         main.startBot();
     }
 

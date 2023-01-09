@@ -1,7 +1,7 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
-import fr.funixgaming.twitch.api.auth.TwitchAuth;
-import fr.funixgaming.twitch.api.chatbot_irc.entities.*;
+import fr.funixgaming.twitch.api.chatbot_irc.entities.ChatMember;
+import fr.funixgaming.twitch.api.chatbot_irc.entities.ChatMessage;
 import fr.funixgaming.twitch.api.chatbot_irc.events.*;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.NoticeEventParser;
 import fr.funixgaming.twitch.api.chatbot_irc.parsers.TagParser;
@@ -28,17 +28,10 @@ public class TwitchBot extends IRCSocketClient {
      * After initialisation, the program connects to Twitch IRC service
      *
      * @param botUsername String Bot username where the app will connect to
-     * @param auth auth class
-     *                   <br>Needs scopes chat:read chat:edit channel:moderate whispers:read whispers:edit channel_editor
-     *                    <br>- TwitchScopes.CHAT_EDIT
-     *                    <br>- TwitchScopes.CHAT_READ
-     *                    <br>- TwitchScopes.CHANNEL_MODERATE
-     *                    <br>- TwitchScopes.CHANNEL_EDITOR
-     *                    <br>- TwitchScopes.WHISPER_READ
-     *                    <br>- TwitchScopes.WHISPER_EDIT
+     * @param oAuthCode oAuthCode, obtain it from <a href="https://twitchapps.com/tmi/">Oauth generator</a>
      */
-    public TwitchBot(final String botUsername, final TwitchAuth auth) throws TwitchIRCException {
-        super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, auth);
+    public TwitchBot(final String botUsername, final String oAuthCode) throws TwitchIRCException {
+        super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oAuthCode);
         this.twitchCommands = new TwitchCommands(this);
 
         final Instant startTime = Instant.now();
