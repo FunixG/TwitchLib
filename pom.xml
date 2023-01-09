@@ -36,15 +36,12 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>funixprod-mvn-repository</id>
-            <name>FunixProductions Maven Repository</name>
-            <url>https://maven.funixgaming.fr/snapshots</url>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-
         <repository>
-            <id>funixprod-mvn-repository</id>
-            <name>FunixProductions Maven Repository</name>
-            <url>https://maven.funixgaming.fr/releases</url>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
@@ -69,6 +66,8 @@
         <nexus.staging.plugin.version>1.6.13</nexus.staging.plugin.version>
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
         <org.jacoco.coverage.version>0.8.8</org.jacoco.coverage.version>
+        <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
+        <sonarqube.plugin.version>3.9.1.2184</sonarqube.plugin.version>
     </properties>
 
     <dependencies>
@@ -110,6 +109,24 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonarqube.plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${nexus.staging.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
             </plugin>
 
             <!-- Attach source jars-->

@@ -46,7 +46,3 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
-          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
-          TWITCH_OAUTH_CODE: ${{ secrets.TWITCH_OAUTH_CODE2 }}
-          TWITCH_REDIRECT_URL: ${{ secrets.TWITCH_REDIRECT_URL }}
