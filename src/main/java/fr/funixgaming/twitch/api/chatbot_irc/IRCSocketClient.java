@@ -1,13 +1,15 @@
 package fr.funixgaming.twitch.api.chatbot_irc;
 
+import fr.funixgaming.twitch.api.exceptions.TwitchIRCException;
 import fr.funixgaming.twitch.api.tools.TwitchThreadPool;
+import lombok.Getter;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -23,6 +25,7 @@ public abstract class IRCSocketClient {
     private final Set<String> channelsConnected = new HashSet<>();
 
     private final TwitchThreadPool threadPool;
+    @Getter
     private final Logger logger;
     private final String oAuthCode;
     private final String domain;
@@ -30,10 +33,8 @@ public abstract class IRCSocketClient {
 
     private volatile boolean isRunning = true;
     private volatile boolean twitchReady = false;
-
-    protected volatile SSLSocket socket = null;
-    private volatile BufferedReader reader = null;
-    private volatile PrintWriter writer = null;
+    private volatile long lastMessageTs = System.currentTimeMillis();
+    protected volatile boolean needRestart = false;
 
     protected IRCSocketClient(final String domain, final int port, final String username, final String oAuthCode) {
         this.threadPool = new TwitchThreadPool(6);
@@ -44,41 +45,37 @@ public abstract class IRCSocketClient {
         this.port = port;
 
         this.start();
-        this.messageTask();
-        Runtime.getRuntime().addShutdownHook(new Thread(this::closeConnection));
     }
 
     private void start() {
         final Thread botThread = new Thread(() -> {
             while (this.isRunning) {
                 this.twitchReady = false;
+                this.needRestart = false;
 
-                try {
-                    if (!initSocketConnection()) {
+                try (final SSLSocket socket = this.initSocketConnection();
+                     final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                     final PrintWriter writer = new PrintWriter(socket.getOutputStream())) {
+
+                    writer.println("PASS oauth:" + this.oAuthCode);
+                    writer.println("NICK " + this.username);
+                    writer.println("CAP REQ :twitch.tv/tags");
+                    writer.println("CAP REQ :twitch.tv/commands");
+                    writer.println("CAP REQ :twitch.tv/membership");
+                    writer.flush();
+
+                    this.checkTimeoutWorker(socket);
+                    while (this.isRunning && !needRestart && socket.isConnected() && !socket.isClosed()) {
+                        this.worker(reader, writer);
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, String.format("Error start socket IRC. Exception: %s", e.getMessage()), e);
+
+                    try {
                         Thread.sleep(5000);
-                        continue;
+                    } catch (InterruptedException interruptedException) {
+                        logger.log(Level.SEVERE, "Error while waiting for Twitch response. Exception: " + interruptedException.getMessage());
                     }
-
-                    reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-                    writer = new PrintWriter(this.socket.getOutputStream());
-
-                    initIrcConnection();
-
-                    while (this.isRunning && this.socket.isConnected() && !this.socket.isClosed()) {
-                        worker();
-                    }
-
-                } catch (IOException | InterruptedException e) {
-                    logger.log(Level.SEVERE, "Error while initializing socket. Exception: " + e.getMessage());
-                } finally {
-                    this.twitchReady = false;
-                    cleanMemory();
-                }
-
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
         });
@@ -89,96 +86,111 @@ public abstract class IRCSocketClient {
 
     /**
      * Initialize socket connection.
-     * @return true if connection is successful, false otherwise
      */
-    private boolean initSocketConnection() {
+    private SSLSocket initSocketConnection() throws TwitchIRCException {
         try {
-            logger.log(Level.INFO, "Connecting to " + domain + ':' + port + "...");
+            logger.log(Level.INFO, String.format("Connecting to %s:%d...", domain, port));
 
             final SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            this.socket = (SSLSocket) factory.createSocket(domain, port);
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Could not connect to " + domain + ':' + port + ". Reason: " + e.getMessage());
-            return false;
-        }
+            final SSLSocket socket = (SSLSocket) factory.createSocket(domain, port);
+            final Thread checkLogin = checkLoginThread(socket);
 
+            checkLogin.start();
+            return socket;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, String.format("Could not connect to %s:%d. Reason: %s", domain, port, e.getMessage()), e);
+            throw new TwitchIRCException("Error login Twitch IRC");
+        }
+    }
+
+    private Thread checkLoginThread(final SSLSocket socket) {
         final Thread checkLogin = new Thread(() -> {
             try {
                 Thread.sleep(10000);
 
                 if (!this.twitchReady) {
                     logger.log(Level.WARNING, "Twitch not responding, retry login...");
-                    this.socket.close();
+                    socket.close();
                 }
-            } catch (InterruptedException | IOException e) {
-                logger.log(Level.WARNING, "Error while waiting for Twitch response. Exception: " + e.getMessage());
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error while waiting for Twitch response. Exception: " + e.getMessage(), e);
             }
         });
 
         checkLogin.setName("IRC-TwitchBot CheckLogin");
-        checkLogin.start();
-        return true;
+        return checkLogin;
     }
 
-    private void initIrcConnection() {
-        this.writer.println("PASS oauth:" + this.oAuthCode);
-        this.writer.println("NICK " + this.username);
-        this.writer.println("CAP REQ :twitch.tv/tags");
-        this.writer.println("CAP REQ :twitch.tv/commands");
-        this.writer.println("CAP REQ :twitch.tv/membership");
-        this.writer.flush();
-    }
-
-    private void worker() {
+    private void worker(final BufferedReader reader, final PrintWriter writer) throws TwitchIRCException {
         try {
-
             final String message = reader.readLine();
             if (message == null) {
                 return;
             }
 
+            this.lastMessageTs = System.currentTimeMillis();
             if (message.startsWith(":tmi.twitch.tv 001 " + this.username + " :Welcome, GLHF!")) {
-
                 this.twitchReady = true;
                 logger.log(Level.INFO, "Connected to " + domain + ':' + port + " !");
+                this.messageTask(writer);
 
                 for (final String channel : this.channelsConnected) {
                     this.joinChannel(channel);
                 }
-
             } else if (!twitchReady) {
                 logger.log(Level.WARNING, "IRC received message while in not ready state: " + message);
             } else {
                 this.threadPool.newTask(() -> this.onSocketMessage(message));
             }
-
-        } catch (IOException e) {
-            if (!this.socket.isClosed()) {
-                logger.log(Level.SEVERE, "Error while reading from socket. Exception: " + e.getMessage());
-            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while reading from socket. Exception: " + e.getMessage(), e);
+            throw new TwitchIRCException("Error while reading from socket");
         }
+    }
+
+    private void checkTimeoutWorker(final Socket socket) {
+        final Thread checkTimeout = new Thread(() -> {
+            while (this.isRunning && !needRestart && socket.isConnected() && !socket.isClosed()) {
+                try {
+                    Thread.sleep(1000);
+
+                    if (System.currentTimeMillis() - this.lastMessageTs > 330000) {
+                        logger.log(Level.WARNING, "Twitch not responding, retry login...");
+                        needRestart = true;
+                        socket.close();
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Error while waiting for Twitch response. Exception: " + e.getMessage(), e);
+                }
+            }
+        });
+
+        checkTimeout.setName("IRC-TwitchBot CheckTimeout");
+        checkTimeout.start();
     }
 
     /**
      * Handles the message queue.
      */
-    private void messageTask() {
+    private void messageTask(final PrintWriter writer) {
         final Thread messageThread = new Thread(() -> {
             try {
-                while (this.isRunning) {
-                    if (this.messagesQueue.size() > 0 && this.twitchReady) {
-                        final String message = this.messagesQueue.poll();
+                while (this.twitchReady) {
+                    String message = this.messagesQueue.poll();
 
-                        if (message != null) {
-                            writer.println(message);
-                        }
-                        writer.flush();
+                    while (message != null) {
+                        writer.println(message);
+                        message = this.messagesQueue.poll();
+                    }
+                    if (writer.checkError()) {
+                        this.needRestart = true;
+                        throw new TwitchIRCException("Error while sending message to Twitch IRC");
                     }
 
                     Thread.sleep(150);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Error while sending message to Twitch IRC. Exception: " + e.getMessage(), e);
             }
         });
 
@@ -186,48 +198,13 @@ public abstract class IRCSocketClient {
         messageThread.start();
     }
 
-    private void cleanMemory() {
-        try {
-            if (this.reader != null) {
-                this.reader.close();
-                this.reader = null;
-            }
-
-            if (this.writer != null) {
-                this.writer.close();
-                this.writer = null;
-            }
-
-            if (this.socket != null && !this.socket.isClosed()) {
-                this.socket.close();
-                this.socket = null;
-            }
-        } catch (IOException exception) {
-            logger.log(Level.SEVERE, "Error while cleaning memory socket. Exception: " + exception.getMessage());
-        }
-    }
-
-    private boolean isRunning() {
-        return this.isRunning && this.socket != null && !this.socket.isClosed();
-    }
-
     public boolean isConnected() {
-        return this.isRunning() && this.twitchReady && this.socket.isConnected();
+        return this.isRunning;
     }
 
     public void closeConnection() {
         this.isRunning = false;
         this.twitchReady = false;
-
-        try {
-            if (this.isConnected()) {
-                this.logger.log(Level.INFO, "Closing Twitch IRC...");
-                this.socket.close();
-                this.logger.log(Level.INFO, "TwitchIRC closed.");
-            }
-        } catch (IOException ioException) {
-            logger.log(Level.SEVERE, "Error while closing TwitchIRC. Exception: " + ioException.getMessage());
-        }
     }
 
     protected void sendMessage(final String message) {
@@ -248,10 +225,6 @@ public abstract class IRCSocketClient {
         this.sendMessage("PART #" + channel + "\n");
         this.channelsConnected.remove(channel);
         logger.log(Level.INFO, "Left channel #" + channel);
-    }
-
-    public Logger getLogger() {
-        return this.logger;
     }
 
     protected abstract void onSocketMessage(final String message);

@@ -20,7 +20,6 @@ public class TwitchBot extends IRCSocketClient {
     private static final String URL_TWITCH_CHAT_IRC = "irc.chat.twitch.tv";
     private static final int IRC_CHAT_PORT_SSL = 6697;
 
-    @Getter private final TwitchCommands twitchCommands;
     private final List<TwitchEvents> twitchEvents = new ArrayList<>();
 
     /**
@@ -32,7 +31,6 @@ public class TwitchBot extends IRCSocketClient {
      */
     public TwitchBot(final String botUsername, final String oAuthCode) throws TwitchIRCException {
         super(URL_TWITCH_CHAT_IRC, IRC_CHAT_PORT_SSL, botUsername, oAuthCode);
-        this.twitchCommands = new TwitchCommands(this);
 
         final Instant startTime = Instant.now();
         while (!super.isConnected()) {
@@ -87,39 +85,31 @@ public class TwitchBot extends IRCSocketClient {
 
     @Override
     protected void onSocketMessage(final String message) {
-        try {
-            if (message.startsWith("PING")) {
-                final String[] split = message.split(" ");
+        if (message.startsWith("PING")) {
+            final String[] split = message.split(" ");
 
-                if (split.length == 2) {
-                    super.sendMessage("PONG " + split[1]);
-                }
-            } else if (message.startsWith(":tmi.twitch.tv RECONNECT")) {
-                super.getLogger().log(Level.INFO, "RECONNECT Twitch state received, now reconnecting...");
-                super.socket.close();
-            } else {
-                final TagParser parser = new TagParser(message);
-                if (parser.getTwitchTag() == null) {
-                    return;
-                }
+            if (split.length == 2) {
+                super.sendMessage("PONG " + split[1]);
+            }
+        } else if (message.startsWith(":tmi.twitch.tv RECONNECT")) {
+            super.getLogger().log(Level.INFO, "RECONNECT Twitch state received, now reconnecting...");
+            super.needRestart = false;
+        } else {
+            final TagParser parser = new TagParser(message);
+            if (parser.getTwitchTag() == null) {
+                return;
+            }
 
-                for (final TwitchEvents evtInstance : this.twitchEvents) {
-                    switch (parser.getTwitchTag()) {
-                        case CLEARCHAT -> evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
-                        case CLEARMSG -> evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));
-                        case PRIVMSG -> evtInstance.onUserChat(new UserChatEvent(parser, this));
-                        case ROOMSTATE -> evtInstance.onRoomStateChange(new RoomStateChangeEvent(this, parser));
-                        case USERNOTICE -> handleUserNoticeEvent(evtInstance, parser);
-                        case HOSTTARGET -> evtInstance.onChannelHost(new HostChannelEvent(parser, this));
-                    }
+            for (final TwitchEvents evtInstance : this.twitchEvents) {
+                switch (parser.getTwitchTag()) {
+                    case CLEARCHAT -> evtInstance.onClearUserMessages(new ClearUserMessagesEvent(parser, this));
+                    case CLEARMSG -> evtInstance.onMessageDeleted(new DeleteMessageEvent(parser, this));
+                    case PRIVMSG -> evtInstance.onUserChat(new UserChatEvent(parser, this));
+                    case ROOMSTATE -> evtInstance.onRoomStateChange(new RoomStateChangeEvent(this, parser));
+                    case USERNOTICE -> handleUserNoticeEvent(evtInstance, parser);
+                    case HOSTTARGET -> evtInstance.onChannelHost(new HostChannelEvent(parser, this));
                 }
             }
-        } catch (IOException e) {
-            super.getLogger().log(Level.WARNING,
-                    "Error while reading message from Twitch IRC.\n" +
-                            "MessageReceived: " + message + "\n" +
-                            "Exception: " + e.getMessage()
-            );
         }
     }
 

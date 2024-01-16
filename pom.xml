@@ -51,23 +51,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-        <lombook.version>1.18.24</lombook.version>
+        <lombook.version>1.18.30</lombook.version>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-        <unitTest.version>5.9.1</unitTest.version>
+        <unitTest.version>5.10.1</unitTest.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
-        <unitTestBuild.version>3.0.0-M7</unitTestBuild.version>
+        <unitTestBuild.version>3.2.5</unitTestBuild.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
         <maven.sign.version>3.0.1</maven.sign.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-        <maven.javadoc.version>3.4.1</maven.javadoc.version>
+        <maven.javadoc.version>3.6.3</maven.javadoc.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
-        <maven.sources.version>3.2.1</maven.sources.version>
+        <maven.sources.version>3.3.0</maven.sources.version>
         <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
         <nexus.staging.plugin.version>1.6.13</nexus.staging.plugin.version>
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-        <org.jacoco.coverage.version>0.8.8</org.jacoco.coverage.version>
+        <org.jacoco.coverage.version>0.8.11</org.jacoco.coverage.version>
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
-        <sonarqube.plugin.version>3.9.1.2184</sonarqube.plugin.version>
+        <sonarqube.plugin.version>3.10.0.2594</sonarqube.plugin.version>
     </properties>
 
     <dependencies>

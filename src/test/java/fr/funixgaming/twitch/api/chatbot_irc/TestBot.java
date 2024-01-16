@@ -36,7 +36,7 @@ class TestBot {
     public static void main(String[] args) {
         final TestBot main = new TestBot();
 
-        main.setBotUsername("testfunix");
+        main.setBotUsername("funixbot");
         main.twitchAuth = System.getenv("BOT_TOKEN");
         main.startBot();
     }
